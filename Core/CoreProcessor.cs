@@ -432,10 +432,11 @@ namespace Bot.Core
                 busy = false;
                 wave2.inventory.inventorySetup();
                 wave2.equipment.setEquipment();
+                wave2.checkLoop();
                 await Task.Delay(1000);
                 initPrayer();
                 tickCounter();
-                wave2.killRangerSouth();
+                wave2.killSingleRanger1();
             }
             if (script == "prayer test")
             {

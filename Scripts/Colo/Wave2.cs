@@ -141,14 +141,13 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(100);
             }
-            if (rangerPos4())
+            if (rangerPos4() || rangerPos5())
             {
                 processor.addMouseClick(231, 157, "gamescreen"); //attack ranger
                 await Task.Delay(1200);
                 processor.addMouseClick(600, 339, "prayer"); //pray mage
                 await Task.Delay(200);
-                inventory.clickItem2("venator bow", 4, true);
-                inventory.clickItem2("amethyst arrow", 3);
+                equipDPSRangeWeapon();
                 solveWave();
                 return;
             }
@@ -341,38 +340,26 @@ namespace Bot.Scripts.Colo
         public async void flinchMager()
         {
             prayer.solidMagic();
-            await Task.Delay(600);
-            if (!fremDead())
+            await Task.Delay(300);
+            while(processor.tick != 4)
+            {
+                await Task.Delay(10);
+            }
+            if (magerPos22())
             {
                 processor.addMouseClick(257, 91, "gamescreen");
-                //processor.addMouseClick(271, 169, "gamescreen");
             } else
             {
+                Console.WriteLine("Mager dead");
+                return;
                 //mager dead
             }
-            while (!atMiddleTile())
+            while (processor.currentTick != 5)
             {
                 await Task.Delay(10);
             }
-            if(processor.tick1())
-            {
-                while(processor.tick1())
-                {
-                    await Task.Delay(1);
-                }
-            } else
-            {
-                while (processor.tick2())
-                {
-                    await Task.Delay(1);
-                }
-            }
-            int currentTick = processor.tick;
-            while(processor.tick != currentTick + 2)
-            {
-                await Task.Delay(10);
-            }
-            prayer.solidRange();
+            processor.addMouseClick(640, 340, "prayer");
+            //prayer.solidRange();
             await Task.Delay(1200);
             processor.addMouseClick(228, 193, "gamescreen");
             await Task.Delay(600);
@@ -400,6 +387,9 @@ namespace Bot.Scripts.Colo
         {
             northOfSouthRanger();
             westOfSouthRanger();
+            rangerEastCheck();
+            rangerNorthCheck();
+            singleRangerPos1();
             await Task.Delay(100);
             checkLoop();
         }
@@ -457,7 +447,7 @@ namespace Bot.Scripts.Colo
         public async void loopAttack2()
         {
             processor.addMouseClick(268, 165, "gamescreen");
-            while (!rangerEast())
+            while (!rangerEast)
             {
                 await Task.Delay(100);
             }
@@ -485,28 +475,32 @@ namespace Bot.Scripts.Colo
             loopAttack2();
         }
 
+        public bool singleRangeP1 = false;
+        public bool rangerEast = false;
+        public bool rangerNorth = false;
+
         public async void killSingleRanger1()
         {
             processor.addMouseClick(283, 169, "gamescreen");
             prayer.solidRange();
-            while (singleRangerPos1())
+            while (singleRangeP1)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
-            while(!singleRangerPos1())
+            while (!singleRangeP1)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
             processor.addMouseClick(243, 105, "gamescreen");
-            while(!rangerEast() || hitSplat() || hitSplat2())
+            while(!rangerEast)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
             await Task.Delay(1000);
             processor.addMouseClick(269, 158, "gamescreen");
-            while(!rangerNorth())
+            while(!rangerNorth)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
             loopAttack();
         }
@@ -522,12 +516,9 @@ namespace Bot.Scripts.Colo
             {
                 processor.addMouseClick(225, 221, "gamescreen"); //safespot
             }
-            while (!hitSplat2())
-            {
-                await Task.Delay(10);
-            }
+            await Task.Delay(1000);
             processor.addMouseClick(241, 182, "gamescreen");
-            while (!rangerEast())
+            while (!rangerEast || !fremDead())
             {
                 await Task.Delay(10);
             }
@@ -538,12 +529,9 @@ namespace Bot.Scripts.Colo
             {
                 processor.addMouseClick(244, 209, "gamescreen"); //safespot
             }
-            while (!hitSplat())
-            {
-                await Task.Delay(10);
-            }
+            await Task.Delay(1000);
             processor.addMouseClick(274, 156, "gamescreen");
-            while (!rangerNorth())
+            while (!rangerNorth || !fremDead())
             {
                 await Task.Delay(10);
             }
@@ -859,7 +847,7 @@ namespace Bot.Scripts.Colo
             westR = false;
             return false;
         }
-        public bool rangerEast()
+        public bool rangerEastCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             using (Bitmap bitmap = new Bitmap(3, 3))
@@ -875,14 +863,16 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
                         {
+                            rangerEast = true;
                             return true;
                         }
                     }
                 }
             }
+            rangerEast = false;
             return false;
         }
-        public bool rangerNorth()
+        public bool rangerNorthCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             using (Bitmap bitmap = new Bitmap(3, 3))
@@ -898,11 +888,13 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
                         {
+                            rangerNorth = true;
                             return true;
                         }
                     }
                 }
             }
+            rangerNorth = false;
             return false;
         }
         public bool rangerPos1()
@@ -1106,7 +1098,7 @@ namespace Bot.Scripts.Colo
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 6, clientCoords[1] + 48, 0, 0, new Size(5, 5));
+                    g.CopyFromScreen(clientCoords[0] + 7, clientCoords[1] + 48, 0, 0, new Size(5, 5));
                 }
 
                 for (int x = 0; x < 4; x++)
@@ -1188,11 +1180,13 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
                         {
+                            singleRangeP1 = true;
                             return true;
                         }
                     }
                 }
             }
+            singleRangeP1 = false;
             return false;
         }
         public bool magerPos2()
@@ -1295,6 +1289,29 @@ namespace Bot.Scripts.Colo
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
                     g.CopyFromScreen(clientCoords[0] + 645, clientCoords[1] + 79, 0, 0, new Size(3, 3));
+                }
+
+                for (int x = 0; x < 2; x++)
+                {
+                    for (int y = 0; y < 2; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public bool rangerPos6()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(3, 3))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 669, clientCoords[1] + 63, 0, 0, new Size(3, 3));
                 }
 
                 for (int x = 0; x < 2; x++)

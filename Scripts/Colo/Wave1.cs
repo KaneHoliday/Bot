@@ -48,6 +48,8 @@ namespace Bot.Scripts.Colo
         public int fremsCleared = 0;
         public bool wave2tests = false;
 
+        public int waveTicks = 0;
+
         public async void startTime()
         {
             await Task.Delay(1000);
@@ -181,7 +183,7 @@ namespace Bot.Scripts.Colo
             Console.WriteLine("At start position");
             processor.addMouseClick(268, 68, "gamescreen");
             await Task.Delay(600);
-            while (!popup())
+            while (!popup)
             {
                 await Task.Delay(100);
             }
@@ -194,11 +196,15 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(10);
             }
             processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
+            while(popup)
+            {
+                await Task.Delay(10);
+            }
             currentTick = 0;
             processor.tick = 0;
             await Task.Delay(1000);
             prayer.solidMagic();
-            while (processor.tick < 5)
+            while (processor.tick < 6)
             {
                 await Task.Delay(10);
             }
@@ -325,12 +331,14 @@ namespace Bot.Scripts.Colo
         public bool meleeFrem = false;
         public bool xpDrop = false;
         public bool fremDead = false;
+        public bool popup = false;
 
         public async void checkLoop()
         {
             meleeFremCheck();
             xpDropCheck();
             fremDeadCheck();
+            popupCheck();
             await Task.Delay(20);
             checkLoop();
         }
@@ -399,13 +407,13 @@ namespace Bot.Scripts.Colo
             if (!magerPos4())
             {
                 processor.addMouseClick(270, 165, "gamescreen"); //attack mager
-                while (xpDropCount < 2) //minimum 2 attacks to kill mager frem
+                while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
                 {
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
                     }
-                    if ((xpDropCount + 1) >= 2)
+                    if ((xpDropCount + 1) >= 3)
                     {
                         xpDropCount++;
                         break;
@@ -428,13 +436,13 @@ namespace Bot.Scripts.Colo
             else
             {
                 processor.addMouseClick(284, 165);
-                while (xpDropCount < 3) //minimum 2 attacks to kill mager frem
+                while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
                 {
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
                     }
-                    if ((xpDropCount + 1) >= 3)
+                    if ((xpDropCount + 1) >= 4)
                     {
                         xpDropCount++;
                         break;
@@ -549,6 +557,16 @@ namespace Bot.Scripts.Colo
                 while (magerOnMap())
                 {
                     await Task.Delay(600);
+                    if(meleeNextToMager())
+                    {
+                        equipDPSRangeWeapon();
+                        await Task.Delay(100);
+                        processor.addMouseClick(256, 121, "gamescreen");
+                        while (magerOnMap())
+                        {
+                            await Task.Delay(600);
+                        }
+                    }
                 }
                 equipMagic();
                 await Task.Delay(2400);
@@ -713,7 +731,7 @@ namespace Bot.Scripts.Colo
                 waveComplete = true;
                 Console.Beep();
             }
-            while (!popup())
+            while (!popup)
             {
                 await Task.Delay(600);
                 if (player.health < 70)
@@ -730,7 +748,7 @@ namespace Bot.Scripts.Colo
             processor.addMouseClick(79, 293);
             await Task.Delay(1200);
             processor.addMouseClick(328, 244);
-            while (popup())
+            while (popup)
             {
                 await Task.Delay(100);
             }
@@ -857,6 +875,29 @@ namespace Bot.Scripts.Colo
                 }
             }
             fremDead = false;
+            return false;
+        }
+        public bool meleeNextToMager()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(5, 5))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 631, clientCoords[1] + 61, 0, 0, new Size(5, 5));
+                }
+
+                for (int x = 0; x < 4; x++)
+                {
+                    for (int y = 0; y < 4; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
             return false;
         }
         public bool meleeNorth()
@@ -1269,7 +1310,7 @@ namespace Bot.Scripts.Colo
             }
             return false;
         }
-        public bool popup()
+        public bool popupCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
             using (Bitmap bitmap = new Bitmap(20, 20))
@@ -1285,11 +1326,13 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(i, j).R == 255)
                         {
+                            popup = true;
                             return true;
                         }
                     }
                 }
             }
+            popup = false;
             return false;
         }
         public bool atMiddleTile()

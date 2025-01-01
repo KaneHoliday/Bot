@@ -19,3 +19,4 @@ C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Release\net6.0-windows7.0\refint
 C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Release\net6.0-windows7.0\Bot.pdb
 C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Release\net6.0-windows7.0\Bot.genruntimeconfig.cache
 C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Release\net6.0-windows7.0\ref\Bot.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Release\net6.0-windows7.0\Bot.sourcelink.json
