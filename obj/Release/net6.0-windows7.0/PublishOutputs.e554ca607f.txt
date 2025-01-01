@@ -1,0 +1,10 @@
+C:\Users\Kane\Documents\shared\Publish\Bot.exe
+C:\Users\Kane\Documents\shared\Publish\Bot.dll
+C:\Users\Kane\Documents\shared\Publish\Bot.deps.json
+C:\Users\Kane\Documents\shared\Publish\Bot.runtimeconfig.json
+C:\Users\Kane\Documents\shared\Publish\Bot.pdb
+C:\Users\Kane\Documents\shared\Publish\Microsoft.Win32.SystemEvents.dll
+C:\Users\Kane\Documents\shared\Publish\System.Drawing.Common.dll
+C:\Users\Kane\Documents\shared\Publish\System.Reactive.dll
+C:\Users\Kane\Documents\shared\Publish\System.Reactive.Windows.Forms.dll
+C:\Users\Kane\Documents\shared\Publish\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll

@@ -1,0 +1,14 @@
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Debug\net8.0\Bot.exe
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Debug\net8.0\Bot.deps.json
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Debug\net8.0\Bot.runtimeconfig.json
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Debug\net8.0\Bot.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Debug\net8.0\Bot.pdb
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.AssemblyInfoInputs.cache
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.AssemblyInfo.cs
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.csproj.CoreCompileInputs.cache
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\refint\Bot.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.pdb
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\Bot.genruntimeconfig.cache
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\obj\Debug\net8.0\ref\Bot.dll

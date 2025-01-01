@@ -1,0 +1,10 @@
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Bot.exe
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Bot.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Bot.deps.json
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Bot.runtimeconfig.json
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Bot.pdb
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\Microsoft.Win32.SystemEvents.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\System.Drawing.Common.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\System.Reactive.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\System.Reactive.Windows.Forms.dll
+C:\Users\Kane\Desktop\Runescape Bot\Bot\Bot\bin\Release\net8.0-windows7.0\publish\runtimes\win\lib\net6.0\Microsoft.Win32.SystemEvents.dll
