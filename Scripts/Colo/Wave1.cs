@@ -204,7 +204,7 @@ namespace Bot.Scripts.Colo
             processor.tick = 0;
             await Task.Delay(1000);
             prayer.solidMagic();
-            while (processor.tick < 6)
+            while (processor.tick < 5)
             {
                 await Task.Delay(10);
             }
@@ -345,7 +345,8 @@ namespace Bot.Scripts.Colo
 
         public async void killFrems()
         {
-            while(!meleeFrem)
+            xpDropCount = 0;
+            while (!meleeFrem)
             {
                 await Task.Delay(20);
             }
