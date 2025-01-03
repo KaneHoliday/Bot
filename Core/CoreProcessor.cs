@@ -436,7 +436,7 @@ namespace Bot.Core
                 await Task.Delay(1000);
                 initPrayer();
                 tickCounter();
-                wave2.killSingleRanger1();
+                wave2.flinchMager();
             }
             if (script == "prayer test")
             {

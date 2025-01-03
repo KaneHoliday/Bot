@@ -196,6 +196,8 @@ namespace Bot.Scripts.Colo
         {
             if (singleRangerPos1() && magerPos22())
             {
+                equipRange();
+                await Task.Delay(1000);
                 flinchMager();
             } else if (magerPos5())
             {
@@ -339,7 +341,6 @@ namespace Bot.Scripts.Colo
 
         public async void flinchMager()
         {
-            prayer.solidMagic();
             await Task.Delay(300);
             while(processor.tick != 4)
             {
@@ -347,22 +348,25 @@ namespace Bot.Scripts.Colo
             }
             if (magerPos22())
             {
-                processor.addMouseClick(257, 91, "gamescreen");
+                processor.addMouseClick(267, 167, "gamescreen");
             } else
             {
                 Console.WriteLine("Mager dead");
                 return;
                 //mager dead
             }
+            prayer.solidMagic();
             while (processor.currentTick != 5)
             {
                 await Task.Delay(10);
             }
-            processor.addMouseClick(640, 340, "prayer");
-            //prayer.solidRange();
-            await Task.Delay(1200);
-            processor.addMouseClick(228, 193, "gamescreen");
+            prayer.solidRange();
+            while (processor.currentTick != 6)
+            {
+                await Task.Delay(10);
+            }
             await Task.Delay(600);
+            processor.addMouseClick(244, 167, "gamescreen");
             prayer.turnOff();
             await Task.Delay(3000);
             //flinchMager();
@@ -505,10 +509,34 @@ namespace Bot.Scripts.Colo
             loopAttack();
         }
 
+        public bool rangerOnMap()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(106, 86))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 588, clientCoords[1] + 30, 0, 0, new Size(106, 86));
+                }
+
+                for (int x = 0; x < 105; x++)
+                {
+                    for (int y = 0; y < 85; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
         public async void loopAttack()
         {
             Console.WriteLine("Loop");
-            if (!fremDead())
+            if (rangerOnMap())
             {
                 processor.addMouseClick(229, 151, "gamescreen"); //attack
             }
@@ -518,11 +546,11 @@ namespace Bot.Scripts.Colo
             }
             await Task.Delay(1000);
             processor.addMouseClick(241, 182, "gamescreen");
-            while (!rangerEast || !fremDead())
+            while (!rangerEast)
             {
                 await Task.Delay(10);
             }
-            if (!fremDead())
+            if (rangerOnMap())
             {
                 processor.addMouseClick(243, 137, "gamescreen"); //attack
             } else
@@ -531,7 +559,7 @@ namespace Bot.Scripts.Colo
             }
             await Task.Delay(1000);
             processor.addMouseClick(274, 156, "gamescreen");
-            while (!rangerNorth || !fremDead())
+            while (!rangerNorth)
             {
                 await Task.Delay(10);
             }

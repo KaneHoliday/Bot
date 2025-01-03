@@ -46,7 +46,7 @@ namespace Bot.Scripts.Colo
         public int health = 99;
 
         public int fremsCleared = 0;
-        public bool wave2tests = false;
+        public bool wave2tests = true;
 
         public int waveTicks = 0;
 
