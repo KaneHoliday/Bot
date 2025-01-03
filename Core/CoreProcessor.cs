@@ -247,6 +247,7 @@ namespace Bot.Core
                             if (currentTick == tick)
                             {
                                 tick++;
+                                colo.waveTicks++;
                                 if (tick >= 9)
                                 {
                                     tick = 0;
@@ -279,6 +280,7 @@ namespace Bot.Core
                             if (currentTick == tick)
                             {
                                 tick++;
+                                colo.waveTicks++;
                                 if (tick >= 9)
                                 {
                                     tick = 0;
@@ -436,19 +438,16 @@ namespace Bot.Core
                 await Task.Delay(1000);
                 initPrayer();
                 tickCounter();
-                wave2.flinchMager();
+                wave2.killSingleRanger1();
             }
             if (script == "prayer test")
             {
-                initPrayer();
-                tickCounter();
                 colo.interfaces = interfaces;
                 colo.inventory = inventory;
                 colo.player = player;
                 colo.xpDrops = xpDrops;
                 colo.processor = this;
                 colo.inventory.processor = this;
-                colo.setFremPrayers();
             }
             if (script == "hunter")
             {

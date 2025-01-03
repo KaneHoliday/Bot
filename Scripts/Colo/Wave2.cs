@@ -192,6 +192,11 @@ namespace Bot.Scripts.Colo
             solveWave();
         }
 
+        public void drinkPotion()
+        {
+
+        }
+
         public async void solveWave()
         {
             if (singleRangerPos1() && magerPos22())
@@ -213,13 +218,37 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(1000);
                 processor.addMouseClick(257, 144, "gamescreen");
             }
-            else if (rangerPos5())
+            else if (singleRangerPos1() && magerPos33())
             {
-                equipMelee();
-                await Task.Delay(1200);
-                processor.addMouseClick(637, 339, "prayer");
-                processor.addMouseClick(280, 105, "gamescreen");
-                //killRanger1();
+                Console.WriteLine("mager pos 3");
+                processor.addMouseClick(232, 157, "gamescreen");
+                while (!magerPos7())
+                {
+                    await Task.Delay(100);
+                }
+                processor.addMouseClick(282, 180, "gamescreen");
+                while (!magerPos4())
+                {
+                    await Task.Delay(100);
+                }
+                processor.addMouseClick(284, 165);
+                while (magerOnMap())
+                {
+                    await Task.Delay(600);
+                }
+                if(meleeNorth())
+                {
+                    equipMagic();
+                    await Task.Delay(1000);
+                    processor.addMouseClick(224, 159);
+                    while (meleeOnMap())
+                    {
+                        await Task.Delay(100);
+                    }
+                    equipMelee();
+                    await Task.Delay(1200);
+                    killSingleRanger1();
+                }
             }
             else if (magerPos5() && rangerMager()) {
                 equipMelee();
@@ -315,6 +344,52 @@ namespace Bot.Scripts.Colo
                 }
                 equipMeleeFrem();
             }
+        }
+        public bool meleeOnMap()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(106, 86))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 588, clientCoords[1] + 30, 0, 0, new Size(106, 86));
+                }
+
+                for (int x = 0; x < 105; x++)
+                {
+                    for (int y = 0; y < 85; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public bool magerPos7()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(3, 3))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 653, clientCoords[1] + 79, 0, 0, new Size(3, 3));
+                }
+
+                for (int x = 0; x < 2; x++)
+                {
+                    for (int y = 0; y < 2; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
         }
         public async void flinchMagerNorthPillar()
         {
@@ -702,6 +777,29 @@ namespace Bot.Scripts.Colo
                     for (int j = 0; j < 4; j++)
                     {
                         if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public bool magerPos33()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(3, 3))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 677, clientCoords[1] + 63, 0, 0, new Size(3, 3));
+                }
+
+                for (int x = 0; x < 2; x++)
+                {
+                    for (int y = 0; y < 2; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
                             return true;
                         }

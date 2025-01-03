@@ -38,7 +38,7 @@ namespace Bot.Core
             inventory[10] = "saradomin godsword";
             inventory[11] = "eclipse atlatl";
             inventory[12] = "";
-            inventory[13] = "";
+            inventory[13] = "shark";
             inventory[14] = "shark";
             inventory[15] = "shark";
             inventory[15] = "super combat potion (4)";
@@ -46,13 +46,13 @@ namespace Bot.Core
             inventory[15] = "shark";
             inventory[15] = "shark";
             inventory[15] = "prayer potion (4)";
-            inventory[15] = "";
             inventory[15] = "shark";
-            inventory[15] = "rune pouch";
-            inventory[24] = "";
-            inventory[15] = "";
+            inventory[15] = "shark";
+            inventory[15] = "shark";
+            inventory[24] = "rune pouch";
+            inventory[15] = "air rune";
             inventory[26] = "saturated heart";
-            inventory[27] = "air rune";
+            inventory[27] = "shark";
         }
 
         public void clickInventorySlot(int x)
@@ -218,7 +218,33 @@ namespace Bot.Core
                     }
                     break;
                 }
-            }
+                else if (slot == 95)
+                {
+                    for (int u = 0; u < inventory.Length; u++)
+                    {
+                        if (inventory[u] == (item + " (4)"))
+                        {
+                            clickInventorySlot(u);
+                            break;
+                        }
+                        if (inventory[u] == (item + " (3)"))
+                        {
+                            clickInventorySlot(u);
+                            break;
+                        }
+                        if (inventory[u] == (item + " (2)"))
+                        {
+                            clickInventorySlot(u);
+                            break;
+                        }
+                        if (inventory[u] == (item + " (1)"))
+                        {
+                            clickInventorySlot(u);
+                            break;
+                        }
+                    }
+                }
+            } 
         }
 
         public void configurePotion(int i)
