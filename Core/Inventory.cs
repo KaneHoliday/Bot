@@ -30,7 +30,7 @@ namespace Bot.Core
             inventory[2] = "dragon defender";
             inventory[3] = "abyssal whip";
             inventory[4] = "eclipse moon tassets";
-            inventory[5] = "necklace of anguish";
+            inventory[5] = "amulet of anguish";
             inventory[6] = "amulet of fury";
             inventory[7] = "ahrims robeskirt";
             inventory[8] = "amethyst arrow";

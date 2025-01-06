@@ -24,10 +24,6 @@ namespace Bot.Scripts.Colo
         public int[] clientCoords = new int[2];
         public int[] prayerCycle = new int[10];
 
-        public string prayerActive = "None";
-        public string tabOpen = "None";
-        public string nextPrayer = "None";
-        public bool prayerOn = false;
         public int tick = 0;
         public bool waveComplete = false;
 
@@ -46,7 +42,7 @@ namespace Bot.Scripts.Colo
         public int health = 99;
 
         public int fremsCleared = 0;
-        public bool wave2tests = true;
+        public bool wave2tests = false;
 
         public int waveTicks = 0;
 
@@ -95,14 +91,6 @@ namespace Bot.Scripts.Colo
             //Console.WriteLine("Xp gained: " + xpGained.ToString());
             Console.WriteLine("Profit Made: " + (claims * 40000).ToString());
             Console.WriteLine("Wave ticks: " + waveTicks.ToString());
-            for (int i = 0; i < prayer.prayerArray.Length; i++)
-            {
-                Console.Write(prayer.prayerArray[i]);
-            }
-            for (int i = 0; i < 15; i++)
-            {
-                Console.WriteLine(inventory.inventory[i].ToString());
-            }
             if(processor.tick1())
             {
                 while(processor.tick1())
@@ -125,6 +113,7 @@ namespace Bot.Scripts.Colo
             if (firstRun)
             {
                 checkLoop();
+                magePosLoop();
                 startTime();
                 updateConsole();
                 firstRun = false;
@@ -134,7 +123,6 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(200);
                 processor.addMouseClick(204, 331, "movement");
                 await Task.Delay(200);
-                inventory.clickItem2("ranging potion", 95);
                 for (int i = 0; i < processor.inventory.inventory.Length; i++)
                 {
                     if (processor.inventory.inventory[i] == "ranging potion (1)")
@@ -192,26 +180,15 @@ namespace Bot.Scripts.Colo
             Console.WriteLine("Popup past");
             await Task.Delay(200);
             processor.addMouseClick(339, 281, "gamescreen"); //click on the invocation
-            int currentTick = processor.tick;
-            while (processor.tick == currentTick)
-            {
-                await Task.Delay(10);
-            }
+            await Task.Delay(200);
             processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
             while(popup)
             {
                 await Task.Delay(10);
             }
-            currentTick = 0;
-            processor.tick = 0;
-            await Task.Delay(1000);
             prayer.solidMagic();
-            while (processor.tick < 5)
-            {
-                await Task.Delay(10);
-            }
-            processor.addMouseClick(167, 157, "movement"); //move to the safespot
-            waveTicks = 0;
+            await Task.Delay(3 * 600);
+            processor.addMouseClick(167, 157, "gamescreen"); //move to the safespot
             await Task.Delay(1200);
             //rightClickMeleeFrem();
             killFrems();
@@ -465,15 +442,15 @@ namespace Bot.Scripts.Colo
         public bool xpDropCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(19, 60))
+            using (Bitmap bitmap = new Bitmap(20, 40))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 492, clientCoords[1] + 80, 0, 0, new Size(19, 60));
+                    g.CopyFromScreen(clientCoords[0] + 492, clientCoords[1] + 111, 0, 0, new Size(20, 40));
                 }
-                for (int x = 0; x < 19; x++)
+                for (int x = 0; x < 20; x++)
                 {
-                    for (int y = 0; y < 59; y++)
+                    for (int y = 0; y < 40; y++)
                     {
                         if (bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
                         {
@@ -486,195 +463,205 @@ namespace Bot.Scripts.Colo
             xpDrop = false;
             return false;
         }
+
+        public int magePos = 0;
+
+        public async void magePosLoop()
+        {
+            magerPos1();
+            magerPos2();
+            magerPos3();
+            magerPos4();
+            magerPos5();
+            magerPos6();
+            magerPos7();
+            await Task.Delay(100);
+            magePosLoop();
+        }
+
         public async void solveWave()
         {
-            if (magerPos1())
+            switch(magePos)
             {
-                Console.WriteLine("mager pos 1");
-                processor.addMouseClick(244, 167, "gamescreen");
-                while(magerPos1())
-                {
-                    await Task.Delay(100);
-                }
-                while(!magerPos6()) {
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(349, 151, "gamescreen");
-                while (magerOnMap())
-                {
-                    await Task.Delay(600);
-                }
-                Console.WriteLine("mager dead");
-                if (!meleeOnMap())
-                {
-                    processor.addMouseClick(335, 181, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
+                case 1:
+                    processor.addMouseClick(244, 167, "gamescreen");
+                    while (magerPos1())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
-                }
-                else
-                {
-                    processor.addMouseClick(268, 168, "gamescreen");
-                    equipMagic();
-                    await Task.Delay(2400);
-                    if (prayer.activePrayer == 1)
+                    while (!magerPos6())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
-                    await Task.Delay(1200);
-                    if (meleeNorth())
+                    processor.addMouseClick(349, 151, "gamescreen");
+                    while (magerOnMap())
                     {
-                        processor.addMouseClick(254, 116, "gamescreen");
+                        await Task.Delay(600);
+                    }
+                    await Task.Delay(1800);
+                    if (!meleeOnMap())
+                    {
+                        processor.addMouseClick(335, 181, "gamescreen");
+                        await Task.Delay(600);
+                        equipMagic();
                         await Task.Delay(600);
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
-                            await Task.Delay(600);
                         }
-                        while (meleeNorth())
-                        {
-                            await Task.Delay(100);
-                        }
-                    }
-                    else if (meleeWest())
-                    {
-                        processor.addMouseClick(194, 156, "gamescreen");
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                            await Task.Delay(600);
-                        }
-                        while (meleeWest())
-                        {
-                            await Task.Delay(100);
-                        }
-                    }
-                    Console.WriteLine("Melee dead, wave done.");
-                    processor.addMouseClick(325, 182);
-                }
-                waveComplete = true;
-                Console.Beep();
-            }
-            else if (magerPos2())
-            {
-                processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
-                await Task.Delay(100);
-                while (magerPos2())
-                {
-                    await Task.Delay(100);
-                }
-                while (!magerPos2())
-                {
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(256, 121, "gamescreen");
-                while (magerOnMap())
-                {
-                    await Task.Delay(600);
-                    if(meleeNextToMager())
-                    {
-                        equipDPSRangeWeapon();
-                        await Task.Delay(100);
-                        processor.addMouseClick(256, 121, "gamescreen");
-                        while (magerOnMap())
-                        {
-                            await Task.Delay(600);
-                        }
-                    }
-                }
-                if (!meleeOnMap())
-                {
-                    processor.addMouseClick(324, 181, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                }
-                else
-                {
-                    equipMagic();
-                    await Task.Delay(2400);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                    await Task.Delay(600);
-                    while (!(meleeNorth() || meleeWest()))
-                    {
-                        await Task.Delay(100);
-                    }
-                    if (meleeNorth())
-                    {
-                        processor.addMouseClick(250, 109, "gamescreen");
-                    }
-                    else if (meleeWest())
-                    {
-                        processor.addMouseClick(204, 167, "gamescreen");
-                    }
-                    while (meleeNorth() || meleeWest())
-                    {
-                        await Task.Delay(100);
-                    }
-                    Console.WriteLine("Melee dead, wave done.");
-                    processor.addMouseClick(325, 182);
-                }
-                waveComplete = true;
-                Console.Beep();
-            }
-            else if (magerPos3())
-            {
-                Console.WriteLine("mager pos 3");
-                processor.addMouseClick(232, 157, "gamescreen");
-                while (!magerPos7())
-                {
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(282, 180, "gamescreen");
-                while (!magerPos4())
-                {
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(284, 165);
-                while (magerOnMap())
-                {
-                    await Task.Delay(600);
-                }
-                if (meleeOnMap())
-                {
-                    processor.addMouseClick(350, 182, "gamescreen");
-                    Console.WriteLine("mager dead, melee skipped");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                }
-                else
-                {
-                    processor.addMouseClick(646, 80, "gamescreen");
-                    Console.WriteLine("mager dead");
-                    equipMagic();
-                    await Task.Delay(2400);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                    await Task.Delay(600);
-                    if (!meleeOnMap())
-                    {
-                        Console.WriteLine("Skipped the melee!"); //log this?
                     }
                     else
                     {
+                        processor.addMouseClick(268, 168, "gamescreen");
+                        await Task.Delay(600);
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                        await Task.Delay(600);
+                        while(!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(254, 116, "gamescreen");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(194, 156, "gamescreen");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(325, 182);
+                    }
+                    waveComplete = true;
+                    finishWave();
+                    return;
+                case 2:
+                    processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
+                    await Task.Delay(100);
+                    while (magerPos2())
+                    {
+                        await Task.Delay(100);
+                    }
+                    while (!magerPos2())
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(256, 121, "gamescreen");
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(600);
+                        if (meleeNextToMager())
+                        {
+                            equipDPSRangeWeapon();
+                            await Task.Delay(100);
+                            processor.addMouseClick(256, 121, "gamescreen");
+                            while (magerOnMap())
+                            {
+                                await Task.Delay(600);
+                            }
+                        }
+                    }
+                    await Task.Delay(1800);
+                    if (!meleeOnMap())
+                    {
+                        processor.addMouseClick(324, 181, "gamescreen");
+                        await Task.Delay(600);
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                    }
+                    else
+                    {
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                        await Task.Delay(600);
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(250, 109, "gamescreen");
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(204, 167, "gamescreen");
+                        }
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(325, 182);
+                    }
+                    waveComplete = true;
+                    finishWave();
+                    return;
+                case 3:
+                    Console.WriteLine("mager pos 3");
+                    processor.addMouseClick(232, 157, "gamescreen");
+                    while (!magerPos7())
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(282, 180, "gamescreen");
+                    while (!magerPos4())
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(284, 165);
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(600);
+                    }
+                    await Task.Delay(1800);
+                    if (!meleeOnMap())
+                    {
+                        processor.addMouseClick(350, 182, "gamescreen");
+                        Console.WriteLine("mager dead, melee skipped");
+                        await Task.Delay(600);
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                    }
+                    else
+                    {
+                        processor.addMouseClick(646, 80, "gamescreen");
+                        await Task.Delay(600);
+                        Console.WriteLine("mager dead");
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                        await Task.Delay(600);
                         while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -692,170 +679,179 @@ namespace Bot.Scripts.Colo
                         {
                             await Task.Delay(100);
                         }
+                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(325, 182);
+                    }
+                    waveComplete = true;
+                    Console.Beep();
+                    finishWave();
+                    return;
+                case 4:
+                    processor.addMouseClick(284, 165);
+                    while (magerPos4())
+                    {
+                        await Task.Delay(100);
+                    }
+                    await Task.Delay(1800);
+                    if (!meleeOnMap())
+                    {
+                        Console.WriteLine("Skipped the melee!"); //log this?
+                        await Task.Delay(600);
+                        processor.addMouseClick(350, 182, "gamescreen");
+                        await Task.Delay(600);
+                        equipMagic();
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                    }
+                    else
+                    {
+                        processor.addMouseClick(646, 80, "gamescreen");
+                        await Task.Delay(600);
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                        await Task.Delay(600);
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(250, 109, "gamescreen");
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(204, 167, "gamescreen");
+                        }
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
                     }
                     Console.WriteLine("Melee dead, wave done.");
                     processor.addMouseClick(325, 182);
-                }
-                waveComplete = true;
-                Console.Beep();
-            }
-            else if (magerPos4())
-            {
-                processor.addMouseClick(284, 165);
-                while (magerPos4())
-                {
-                    await Task.Delay(100);
-                }
-                if (!meleeOnMap())
-                {
-                    Console.WriteLine("Skipped the melee!"); //log this?
-                    await Task.Delay(600);
-                    processor.addMouseClick(350, 182, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                }
-                else
-                {
-                    processor.addMouseClick(646, 80, "gamescreen");
-                    equipMagic();
-                    await Task.Delay(2400);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                    await Task.Delay(600);
-                    while (!(meleeNorth() || meleeWest()))
+                    waveComplete = true;
+                    finishWave();
+                    return;
+                default:
+                    processor.addMouseClick(232, 157, "gamescreen");
+                    while (!magerPos7())
                     {
                         await Task.Delay(100);
                     }
-                    if (meleeNorth())
-                    {
-                        processor.addMouseClick(250, 109, "gamescreen");
-                    }
-                    else if (meleeWest())
-                    {
-                        processor.addMouseClick(204, 167, "gamescreen");
-                    }
-                    while (meleeNorth() || meleeWest())
+                    processor.addMouseClick(282, 180, "gamescreen");
+                    while (!magerPos4())
                     {
                         await Task.Delay(100);
                     }
-                }
-                Console.WriteLine("Melee dead, wave done.");
-                processor.addMouseClick(325, 182);
-                waveComplete = true;
-                Console.Beep();
-            }
-            else
-            {
-                processor.addMouseClick(232, 157, "gamescreen");
-                while(!magerPos7())
-                {
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(282, 180, "gamescreen");
-                while(!magerPos4()) { 
-                    await Task.Delay(100);
-                }
-                processor.addMouseClick(284, 165);
-                while (magerOnMap())
-                {
-                    await Task.Delay(100);
-                }
-                if (!meleeOnMap())
-                {
+                    processor.addMouseClick(284, 165);
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (!meleeOnMap())
+                    {
+                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(325, 182);
+                        await Task.Delay(600);
+                        Console.WriteLine("Skipped the melee!"); //log this?
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                    }
+                    else
+                    {
+                        processor.addMouseClick(646, 80, "gamescreen");
+                        await Task.Delay(600);
+                        Console.WriteLine("mager dead");
+                        equipMagic();
+                        await Task.Delay(600);
+                        if (prayer.activePrayer == 1)
+                        {
+                            prayer.turnOff();
+                        }
+                        await Task.Delay(600);
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(250, 109, "gamescreen");
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(204, 167, "gamescreen");
+                        }
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                    }
                     Console.WriteLine("Melee dead, wave done.");
                     processor.addMouseClick(325, 182);
-                    await Task.Delay(600);
-                    Console.WriteLine("Skipped the melee!"); //log this?
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                }
-                else
-                {
-                    processor.addMouseClick(646, 80, "gamescreen");
-                    Console.WriteLine("mager dead");
-                    equipMagic();
-                    await Task.Delay(2400);
-                    if (prayer.activePrayer == 1)
-                    {
-                        prayer.turnOff();
-                    }
-                    await Task.Delay(600);
-                    while (!(meleeNorth() || meleeWest()))
-                    {
-                        await Task.Delay(100);
-                    }
-                    if (meleeNorth())
-                    {
-                        processor.addMouseClick(250, 109, "gamescreen");
-                    }
-                    else if (meleeWest())
-                    {
-                        processor.addMouseClick(204, 167, "gamescreen");
-                    }
-                    while (meleeNorth() || meleeWest())
-                    {
-                        await Task.Delay(100);
-                    }
-                }
-                Console.WriteLine("Melee dead, wave done.");
-                processor.addMouseClick(325, 182);
-                waveComplete = true;
-                Console.Beep();
+                    waveComplete = true;
+                    finishWave();
+                    return;
             }
+        }
+
+        public async void finishWave()
+        {
             while (!popup)
             {
                 await Task.Delay(600);
-                if (player.health < 70)
-                {
-                    inventory.clickItem2("shark", 99);
-                }
+                //if (player.health < 70)
+                //{
+                //    inventory.clickItem2("shark", 99);
+                //}
             }
             if (wave2tests)
             {
                 wave2.startScript();
                 return;
             }
-            await Task.Delay(600);
+            await Task.Delay(100);
             processor.addMouseClick(79, 293);
-            await Task.Delay(1200);
+            await Task.Delay(100);
             processor.addMouseClick(328, 244);
             while (popup)
             {
                 await Task.Delay(100);
             }
-            await Task.Delay(600);
+            await Task.Delay(100);
             processor.addMouseClick(267, 33);
             while (!chestGuy())
             {
                 await Task.Delay(600);
             }
-            await Task.Delay(600);
+            await Task.Delay(100);
             processor.addMouseClick(337, 289);
-            await Task.Delay(600);
-            processor.addMouseClick(337, 309);
             claims++;
             fremsCleared = 0;
-            await Task.Delay(600);
-            processor.addMouseClick(371, 28);
-            await Task.Delay(300);
-            processor.addMouseClick(308, 141);
-            await Task.Delay(2000);
+            await Task.Delay(100);
+            processor.addMouseClick(371, 28, "gamescreen");
+            await Task.Delay(100);
+            processor.addMouseClick(308, 141, "gamescreen");
+            await Task.Delay(100);
+            while (!leaveInterface())
+            {
+                await Task.Delay(100);
+            }
             processor.PressKey((byte)Keys.NumPad1, 1);
-            await Task.Delay(5000);
             while (!colorDoor())
             {
                 await Task.Delay(600);
             }
+            await Task.Delay(600);
             processor.addMouseClick(doorPosX + 15, doorPosY + 25, "gamescreen"); //YELLOW CLICK?
             while (!atMiddleTile())
             {
@@ -863,6 +859,7 @@ namespace Bot.Scripts.Colo
             }
             startScript();
         }
+      
 
         public async void test11()
         {
@@ -889,7 +886,7 @@ namespace Bot.Scripts.Colo
         }
         public async void equipRangeFrem()
         {
-            inventory.clickItem2("necklace of anguish", 2);
+            inventory.clickItem2("amulet of anguish", 2);
             inventory.clickItem2("eclipse moon chestplate", 5);
             inventory.clickItem2("eclipse moon tassets", 7);
             inventory.clickItem2("venator bow", 4, true);
@@ -898,7 +895,7 @@ namespace Bot.Scripts.Colo
         }
         public async void equipRange()
         {
-            inventory.clickItem2("necklace of anguish", 2);
+            inventory.clickItem2("amulet of anguish", 2);
             inventory.clickItem2("eclipse moon chestplate", 5);
             inventory.clickItem2("eclipse moon tassets", 7);
             inventory.clickItem2("eclipse atlatl", 4, true);
@@ -1145,6 +1142,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 1;
                             return true;
                         }
                     }
@@ -1168,6 +1166,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 6;
                             return true;
                         }
                     }
@@ -1191,6 +1190,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 7;
                             return true;
                         }
                     }
@@ -1214,6 +1214,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 5;
                             return true;
                         }
                     }
@@ -1237,6 +1238,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 4;
                             return true;
                         }
                     }
@@ -1260,6 +1262,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 3;
                             return true;
                         }
                     }
@@ -1283,6 +1286,7 @@ namespace Bot.Scripts.Colo
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
                         {
+                            magePos = 2;
                             return true;
                         }
                     }
@@ -1359,20 +1363,43 @@ namespace Bot.Scripts.Colo
             }
             return false;
         }
+        public bool leaveInterface()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(10, 10))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 359, clientCoords[1] + 360, 0, 0, new Size(10, 10));
+                }
+
+                for (int x = 0; x < 10; x++)
+                {
+                    for (int y = 0; y < 10; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 128 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
 
         public bool meleeFremCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
+            using (Bitmap bitmap = new Bitmap(5, 5))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 633, clientCoords[1] + 79, 0, 0, new Size(3, 3));
+                    g.CopyFromScreen(clientCoords[0] + 633, clientCoords[1] + 79, 0, 0, new Size(5, 5));
                 }
 
-                for (int x = 0; x < 2; x++)
+                for (int x = 0; x < 4; x++)
                 {
-                    for (int y = 0; y < 2; y++)
+                    for (int y = 0; y < 4; y++)
                     {
                         if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
                         {

@@ -130,7 +130,6 @@ namespace Bot.Core
             currentTick = tick;
             tickCounter();
             prayer.checkPrayer();
-            await Task.Delay(50);
         }
 
         public void checkPrayers()
