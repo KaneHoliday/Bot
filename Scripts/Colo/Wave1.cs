@@ -187,7 +187,7 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(10);
             }
             prayer.solidMagic();
-            await Task.Delay(3 * 600);
+            await Task.Delay(3 * 620);
             processor.addMouseClick(167, 157, "gamescreen"); //move to the safespot
             await Task.Delay(1200);
             //rightClickMeleeFrem();
@@ -323,6 +323,8 @@ namespace Bot.Scripts.Colo
             checkLoop();
         }
 
+        public bool moveSkip = false;
+
         public async void killFrems()
         {
             xpDropCount = 0;
@@ -385,7 +387,62 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(100);
             }
-            if (!magerPos4())
+            if (magerPos4())
+            {
+                processor.addMouseClick(284, 165);
+                while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
+                {
+                    while (!xpDrop)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if ((xpDropCount + 1) >= 4)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop)
+                    {
+                        await Task.Delay(100);
+                    }
+                    xpDropCount++;
+                }
+                equipLongRangeWeapon();
+                await Task.Delay(600);
+            } else
+            //} else if (magerPos2())
+            //{
+            //    processor.addMouseClick(283, 168);
+            //    while(magerPos2())
+            //    {
+            //        await Task.Delay(100);
+            //    }
+            //    while(!magerPos2())
+            //    {
+            //        await Task.Delay(100);
+            //    }
+            //    moveSkip = true;
+            //    processor.addMouseClick(256, 121, "gamescreen");
+            //    while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
+            //    {
+            //        while (!xpDrop)
+            //        {
+            //            await Task.Delay(100);
+            //        }
+            //        if ((xpDropCount + 1) >= 4)
+            //        {
+            //            xpDropCount++;
+            //            break;
+            //        }
+            //        while (xpDrop)
+            //        {
+            //            await Task.Delay(100);
+            //        }
+            //        xpDropCount++;
+            //    }
+            //    equipLongRangeWeapon();
+            //    await Task.Delay(600);
+            //} else
             {
                 processor.addMouseClick(270, 165, "gamescreen"); //attack mager
                 while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
@@ -413,29 +470,6 @@ namespace Bot.Scripts.Colo
                 Console.WriteLine("Frems dead");
                 equipLongRangeWeapon();
                 await Task.Delay(500);
-            }
-            else
-            {
-                processor.addMouseClick(284, 165);
-                while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
-                {
-                    while (!xpDrop)
-                    {
-                        await Task.Delay(100);
-                    }
-                    if ((xpDropCount + 1) >= 4)
-                    {
-                        xpDropCount++;
-                        break;
-                    }
-                    while (xpDrop)
-                    {
-                        await Task.Delay(100);
-                    }
-                    xpDropCount++;
-                }
-                equipLongRangeWeapon();
-                await Task.Delay(600);
             }
             solveWave();
         }
@@ -552,16 +586,20 @@ namespace Bot.Scripts.Colo
                     finishWave();
                     return;
                 case 2:
-                    processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
-                    await Task.Delay(100);
-                    while (magerPos2())
+                    if (!moveSkip)
                     {
+                        processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
                         await Task.Delay(100);
+                        while (magerPos2())
+                        {
+                            await Task.Delay(100);
+                        }
+                        while (!magerPos2())
+                        {
+                            await Task.Delay(100);
+                        }
                     }
-                    while (!magerPos2())
-                    {
-                        await Task.Delay(100);
-                    }
+                    moveSkip = false;
                     processor.addMouseClick(256, 121, "gamescreen");
                     while (magerOnMap())
                     {
