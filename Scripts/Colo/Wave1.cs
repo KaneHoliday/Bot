@@ -45,6 +45,9 @@ namespace Bot.Scripts.Colo
         public bool wave2tests = false;
 
         public int waveTicks = 0;
+        public int meleeSkips = 0;
+
+        public int[] waveTimes = new int[1000];
 
         public async void startTime()
         {
@@ -90,7 +93,7 @@ namespace Bot.Scripts.Colo
             Console.WriteLine("Waves claimed: " + claims.ToString());
             //Console.WriteLine("Xp gained: " + xpGained.ToString());
             Console.WriteLine("Profit Made: " + (claims * 40000).ToString());
-            Console.WriteLine("Wave ticks: " + waveTicks.ToString());
+            Console.WriteLine("Melee skips: " + meleeSkips.ToString());
             if(processor.tick1())
             {
                 while(processor.tick1())
@@ -189,28 +192,32 @@ namespace Bot.Scripts.Colo
             prayer.solidMagic();
             await Task.Delay(3 * 620);
             processor.addMouseClick(167, 157, "gamescreen"); //move to the safespot
+            if (waveTicks > 100)
+            {
+                saveTimes();
+                waveTimes[claims - 1] = waveTicks;
+                waveTicks = 0;
+            }
             await Task.Delay(1200);
             //rightClickMeleeFrem();
             killFrems();
         }
 
+        public void saveTimes()
+        {
+            string filePath = "output.txt";
+
+            // Join array elements with a comma
+            string content = string.Join(",", waveTimes);
+
+            // Write the content to the file
+            File.WriteAllText(filePath, content);
+
+            Console.WriteLine("Array has been written to the file.");
+        }
+
         public async void setFremPrayers()
         {
-            int a = 0;
-            int b = 1;
-            int c = 2;
-            for (int i = 0; i < 100; i++)
-            {
-                int x = a;
-                x += 7;
-                if(x > 9) { x -= 10; }
-                Console.WriteLine($"{x.ToString()}");
-                int y = b;
-                y += 7;
-                if (y > 9) { y -= 10; }
-                int z = c;
-                z += 7;
-                if (z > 9) { z -= 10; }
                 if (fremsCleared < 1)
                 {
                     prayer.solidMelee();
@@ -226,8 +233,6 @@ namespace Bot.Scripts.Colo
                     prayer.solidMagic();
                     //processor.prayerArray[z] = 2;
                 }
-                await Task.Delay(600 * 4);
-            }
         }
 
         public async void rightClickMeleeFrem()
@@ -333,9 +338,11 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(20);
             }
             processor.addMouseClick(240, 166, "gamescreen");
+            bool pass = false;
             while (xpDropCount < 2)
             {
-                while(!xpDrop)
+                setFremPrayers();
+                while (!xpDrop)
                 {
                     await Task.Delay(100);
                 }
@@ -392,6 +399,7 @@ namespace Bot.Scripts.Colo
                 processor.addMouseClick(284, 165);
                 while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
                 {
+                    setFremPrayers();
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
@@ -447,6 +455,7 @@ namespace Bot.Scripts.Colo
                 processor.addMouseClick(270, 165, "gamescreen"); //attack mager
                 while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
                 {
+                    setFremPrayers();
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
@@ -535,6 +544,7 @@ namespace Bot.Scripts.Colo
                     await Task.Delay(1800);
                     if (!meleeOnMap())
                     {
+                        meleeSkips++;
                         processor.addMouseClick(335, 181, "gamescreen");
                         await Task.Delay(600);
                         equipMagic();
@@ -618,6 +628,7 @@ namespace Bot.Scripts.Colo
                     await Task.Delay(1800);
                     if (!meleeOnMap())
                     {
+                        meleeSkips++;
                         processor.addMouseClick(324, 181, "gamescreen");
                         await Task.Delay(600);
                         equipMagic();
@@ -678,6 +689,7 @@ namespace Bot.Scripts.Colo
                     await Task.Delay(1800);
                     if (!meleeOnMap())
                     {
+                        meleeSkips++;
                         processor.addMouseClick(350, 182, "gamescreen");
                         Console.WriteLine("mager dead, melee skipped");
                         await Task.Delay(600);
@@ -733,7 +745,7 @@ namespace Bot.Scripts.Colo
                     await Task.Delay(1800);
                     if (!meleeOnMap())
                     {
-                        Console.WriteLine("Skipped the melee!"); //log this?
+                        meleeSkips++;
                         await Task.Delay(600);
                         processor.addMouseClick(350, 182, "gamescreen");
                         await Task.Delay(600);
@@ -794,6 +806,7 @@ namespace Bot.Scripts.Colo
                     }
                     if (!meleeOnMap())
                     {
+                        meleeSkips++;
                         Console.WriteLine("Melee dead, wave done.");
                         processor.addMouseClick(325, 182);
                         await Task.Delay(600);
