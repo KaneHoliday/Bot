@@ -124,7 +124,7 @@ namespace Bot.Scripts.Colo
             if(atMiddleTile())
             {
                 await Task.Delay(200);
-                processor.addMouseClick(204, 331, "movement");
+                processor.addMouseClick(116, 312, "movement");
                 await Task.Delay(200);
                 for (int i = 0; i < processor.inventory.inventory.Length; i++)
                 {
@@ -168,13 +168,13 @@ namespace Bot.Scripts.Colo
 
         public async void waitForStartLocation()
         {
-            while (!atStartTile())
+            while (!atCornerTile())
             {
                 await Task.Delay(100);
             }
             await Task.Delay(600);
             Console.WriteLine("At start position");
-            processor.addMouseClick(268, 68, "gamescreen");
+            processor.addMouseClick(322, 76, "gamescreen");
             await Task.Delay(600);
             while (!popup)
             {
@@ -187,11 +187,16 @@ namespace Bot.Scripts.Colo
             processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
             while(popup)
             {
-                await Task.Delay(10);
+                await Task.Delay(300);
+                processor.addMouseClick(315, 181, "gamescreen"); //accept the wave
             }
+            await Task.Delay(100);
             prayer.solidMagic();
-            await Task.Delay(3 * 620);
-            processor.addMouseClick(167, 157, "gamescreen"); //move to the safespot
+            while(!atStartTile())
+            {
+                await Task.Delay(100);
+            }
+            processor.addMouseClick(172, 157, "gamescreen"); //move to the safespot
             if (waveTicks > 100)
             {
                 saveTimes();
@@ -388,7 +393,7 @@ namespace Bot.Scripts.Colo
             await Task.Delay(100);
             prayer.solidMagic();
             await Task.Delay(500);
-            equipRangeFrem();
+            equipRangeFrem(); //has ven bow as weapon
             await Task.Delay(100);
             while (xpDrop)
             {
@@ -757,7 +762,7 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        processor.addMouseClick(646, 80, "gamescreen");
+                        processor.addMouseClick(281, 168, "gamescreen");
                         await Task.Delay(600);
                         equipMagic();
                         await Task.Delay(600);
@@ -1525,6 +1530,29 @@ namespace Bot.Scripts.Colo
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
                     g.CopyFromScreen(clientCoords[0] + 633, clientCoords[1] + 143, 0, 0, new Size(5, 5));
+                }
+
+                for (int i = 0; i < 4; i++)
+                {
+                    for (int j = 0; j < 4; j++)
+                    {
+                        if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public bool atCornerTile()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(5, 5))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 665, clientCoords[1] + 106, 0, 0, new Size(5, 5));
                 }
 
                 for (int i = 0; i < 4; i++)

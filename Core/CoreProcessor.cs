@@ -478,6 +478,9 @@ namespace Bot.Core
         {
             if (tempPClicks[0] != 0)
             {
+                prayerClicks = prayerClicks.Skip(2).ToArray();
+                prayerClicks.Append(0);
+                prayerClicks.Append(0);
                 PressKey((byte)Keys.F3, 1);
                 tabOpen = 3;
                 await Task.Delay(60);
@@ -502,15 +505,15 @@ namespace Bot.Core
                     Console.WriteLine("Has inventory click");
                     if (tabOpen == 1)
                     {
+                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                        inventoryClicks.Append(0);
+                        inventoryClicks.Append(0);
                         Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
                         await Task.Delay(50);
                         mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
                         await Task.Delay(30);
                         mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
                         await Task.Delay(30);
-                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                        inventoryClicks.Append(0);
-                        inventoryClicks.Append(0);
                         tempIClicks = tempIClicks.Skip(2).ToArray();
                         tempIClicks.Append(0);
                         tempIClicks.Append(0);
@@ -518,6 +521,9 @@ namespace Bot.Core
                     }
                     else
                     {
+                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                        inventoryClicks.Append(0);
+                        inventoryClicks.Append(0);
                         PressKey((byte)Keys.F1, 1);
                         tabOpen = 1;
                         await Task.Delay(30);
@@ -527,9 +533,6 @@ namespace Bot.Core
                         await Task.Delay(30);
                         mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
                         await Task.Delay(30);
-                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                        inventoryClicks.Append(0);
-                        inventoryClicks.Append(0);
                         tempIClicks.Append(0);
                         tempIClicks.Append(0);
                         tempIClicks = tempIClicks.Skip(2).ToArray();
@@ -538,15 +541,15 @@ namespace Bot.Core
                 }
                 else if (tempGClicks[0] != 0)
                 {
+                    gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
+                    gamescreenClicks.Append(0);
+                    gamescreenClicks.Append(0);
                     Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
                     await Task.Delay(200);
                     mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
                     await Task.Delay(40);
                     mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
                     await Task.Delay(30);
-                    gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                    gamescreenClicks.Append(0);
-                    gamescreenClicks.Append(0);
                     tempGClicks.Append(0);
                     tempGClicks.Append(0);
                     tempGClicks = tempGClicks.Skip(2).ToArray();
@@ -577,6 +580,10 @@ namespace Bot.Core
             tickTime = 580;
             if (tempPClicks[0] != 0)
             {
+                prayerClicks = prayerClicks.Skip(2).ToArray();
+                prayerClicks.Append(0);
+                prayerClicks.Append(0);
+                tickTime -= (30 + 100 + 50 + 150 + 10);
                 PressKey((byte)Keys.F3, 1);
                 tabOpen = 3;
                 await Task.Delay(60);
@@ -585,32 +592,26 @@ namespace Bot.Core
                 mouse_event(MOUSEEVENTF_LEFTDOWN, tempPClicks[0], tempPClicks[1], 0, 0);
                 await Task.Delay(50);
                 mouse_event(MOUSEEVENTF_LEFTUP, tempPClicks[0], tempPClicks[1], 0, 0);
-                await Task.Delay(150);
-                prayerClicks = prayerClicks.Skip(2).ToArray();
-                prayerClicks.Append(0);
-                prayerClicks.Append(0);
                 tempPClicks = tempPClicks.Skip(2).ToArray();
                 tempPClicks.Append(0);
                 tempPClicks.Append(0);
-                tickTime -= (30 + 100 + 50 + 150 + 10);
             }
             else
             {
                 if (tempMClicks[0] != 0)
                 {
+                    movementClicks = movementClicks.Skip(2).ToArray();
+                    movementClicks.Append(0);
+                    movementClicks.Append(0);
+                    tickTime -= (50 + 10 + 100);
                     Cursor.Position = new Point(clientCoords[0] + tempMClicks[0], clientCoords[1] + tempMClicks[1]);
                     await Task.Delay(50);
                     mouse_event(MOUSEEVENTF_LEFTDOWN, tempMClicks[0], tempMClicks[1], 0, 0);
                     await Task.Delay(10);
                     mouse_event(MOUSEEVENTF_LEFTUP, tempMClicks[0], tempMClicks[1], 0, 0);
-                    await Task.Delay(100);
-                    movementClicks = movementClicks.Skip(2).ToArray();
-                    movementClicks.Append(0);
-                    movementClicks.Append(0);
                     tempMClicks.Append(0);
                     tempMClicks.Append(0);
                     tempMClicks = tempMClicks.Skip(2).ToArray();
-                    tickTime -= (50 + 10 + 100);
                 }
                 else
                 {
@@ -619,22 +620,25 @@ namespace Bot.Core
                         skip = true;
                         if (tabOpen == 1)
                         {
+                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                            inventoryClicks.Append(0);
+                            inventoryClicks.Append(0);
+                            tickTime -= (30 + 10 + 30);
                             Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
                             await Task.Delay(50);
                             mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
                             await Task.Delay(30);
                             mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                            await Task.Delay(30);
-                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                            inventoryClicks.Append(0);
-                            inventoryClicks.Append(0);
                             tempIClicks.Append(0);
                             tempIClicks.Append(0);
                             tempIClicks = tempIClicks.Skip(2).ToArray();
-                            tickTime -= (30 + 10 + 30);
                         }
                         else
                         {
+                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                            inventoryClicks.Append(0);
+                            inventoryClicks.Append(0);
+                            tickTime -= (30 + 30 + 10 + 30);
                             PressKey((byte)Keys.F1, 1);
                             tabOpen = 1;
                             await Task.Delay(30);
@@ -643,31 +647,25 @@ namespace Bot.Core
                             mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
                             await Task.Delay(30);
                             mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                            await Task.Delay(30);
-                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                            inventoryClicks.Append(0);
-                            inventoryClicks.Append(0);
                             tempIClicks.Append(0);
                             tempIClicks.Append(0);
                             tempIClicks = tempIClicks.Skip(2).ToArray();
-                            tickTime -= (30 + 30 + 10 + 30);
                         }
                     }
                     else if (tempGClicks[0] != 0)
                     {
+                        gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
+                        gamescreenClicks.Append(0);
+                        gamescreenClicks.Append(0);
+                        tickTime -= (150 + 10 + 30);
                         Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
                         await Task.Delay(200);
                         mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
                         await Task.Delay(10);
                         mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
-                        await Task.Delay(30);
-                        gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                        gamescreenClicks.Append(0);
-                        gamescreenClicks.Append(0);
                         tempGClicks.Append(0);
                         tempGClicks.Append(0);
                         tempGClicks = tempGClicks.Skip(2).ToArray();
-                        tickTime -= (150 + 10 + 30);
                     }
                 }
             }
@@ -681,22 +679,25 @@ namespace Bot.Core
                 skip = true;
                 if (tabOpen == 1)
                 {
+                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                    inventoryClicks.Append(0);
+                    inventoryClicks.Append(0);
+                    tickTime -= (30 + 10 + 30);
                     Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
                     await Task.Delay(50);
                     mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
                     await Task.Delay(30);
                     mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                    await Task.Delay(30);
-                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                    inventoryClicks.Append(0);
-                    inventoryClicks.Append(0);
                     tempIClicks.Append(0);
                     tempIClicks.Append(0);
                     tempIClicks = tempIClicks.Skip(2).ToArray();
-                    tickTime -= (30 + 10 + 30);
                 }
                 else
                 {
+                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
+                    inventoryClicks.Append(0);
+                    inventoryClicks.Append(0);
+                    tickTime -= (30 + 10 + 30);
                     PressKey((byte)Keys.F1, 1);
                     tabOpen = 1;
                     await Task.Delay(30);
@@ -706,31 +707,25 @@ namespace Bot.Core
                     mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
                     await Task.Delay(30);
                     mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                    await Task.Delay(30);
-                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                    inventoryClicks.Append(0);
-                    inventoryClicks.Append(0);
                     tempIClicks.Append(0);
                     tempIClicks.Append(0);
                     tempIClicks = tempIClicks.Skip(2).ToArray();
-                    tickTime -= (30 + 10 + 30);
                 }
             }
             else if (tempGClicks[0] != 0)
             {
+                gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
+                gamescreenClicks.Append(0);
+                gamescreenClicks.Append(0);
+                tickTime -= (150 + 10 + 30);
                 Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
                 await Task.Delay(200);
                 mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
                 await Task.Delay(10);
                 mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
-                await Task.Delay(30);
-                gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                gamescreenClicks.Append(0);
-                gamescreenClicks.Append(0);
                 tempGClicks.Append(0);
                 tempGClicks.Append(0);
                 tempGClicks = tempGClicks.Skip(2).ToArray();
-                tickTime -= (150 + 10 + 30);
             }
             busy = false;
         }
