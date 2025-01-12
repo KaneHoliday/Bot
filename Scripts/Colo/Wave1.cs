@@ -155,17 +155,6 @@ namespace Bot.Scripts.Colo
             }
         }
 
-        public async void check()
-        {
-            processor.addMouseClick(530, 350, "gamescreen");
-            await Task.Delay(1000);
-            equipMagic();
-            await Task.Delay(3000);
-            equipMelee();
-            await Task.Delay(3000);
-            equipRange();
-        }
-
         public async void waitForStartLocation()
         {
             while (!atCornerTile())
@@ -212,10 +201,8 @@ namespace Bot.Scripts.Colo
         {
             string filePath = "output.txt";
 
-            // Join array elements with a comma
             string content = string.Join(",", waveTimes);
 
-            // Write the content to the file
             File.WriteAllText(filePath, content);
 
             Console.WriteLine("Array has been written to the file.");
@@ -226,17 +213,14 @@ namespace Bot.Scripts.Colo
                 if (fremsCleared < 1)
                 {
                     prayer.solidMelee();
-                    //processor.prayerArray[x] = 3;
                 }
                 if (fremsCleared < 2)
                 {
                     prayer.solidRange();
-                    //processor.prayerArray[y] = 1;
                 }
                 if (fremsCleared < 3)
                 {
                     prayer.solidMagic();
-                    //processor.prayerArray[z] = 2;
                 }
         }
 
@@ -343,7 +327,6 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(20);
             }
             processor.addMouseClick(240, 166, "gamescreen");
-            bool pass = false;
             while (xpDropCount < 2)
             {
                 setFremPrayers();
@@ -399,7 +382,7 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(100);
             }
-            if (magerPos4())
+            if (magePos == 4)
             {
                 processor.addMouseClick(284, 165);
                 while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
@@ -423,39 +406,6 @@ namespace Bot.Scripts.Colo
                 equipLongRangeWeapon();
                 await Task.Delay(600);
             } else
-            //} else if (magerPos2())
-            //{
-            //    processor.addMouseClick(283, 168);
-            //    while(magerPos2())
-            //    {
-            //        await Task.Delay(100);
-            //    }
-            //    while(!magerPos2())
-            //    {
-            //        await Task.Delay(100);
-            //    }
-            //    moveSkip = true;
-            //    processor.addMouseClick(256, 121, "gamescreen");
-            //    while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
-            //    {
-            //        while (!xpDrop)
-            //        {
-            //            await Task.Delay(100);
-            //        }
-            //        if ((xpDropCount + 1) >= 4)
-            //        {
-            //            xpDropCount++;
-            //            break;
-            //        }
-            //        while (xpDrop)
-            //        {
-            //            await Task.Delay(100);
-            //        }
-            //        xpDropCount++;
-            //    }
-            //    equipLongRangeWeapon();
-            //    await Task.Delay(600);
-            //} else
             {
                 processor.addMouseClick(270, 165, "gamescreen"); //attack mager
                 while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
@@ -489,40 +439,22 @@ namespace Bot.Scripts.Colo
         }
         public bool xpDropCheck()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(20, 40))
+            if (checkColor(20, 40, 492, 111, 255, 255, 255))
             {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 492, clientCoords[1] + 111, 0, 0, new Size(20, 40));
-                }
-                for (int x = 0; x < 20; x++)
-                {
-                    for (int y = 0; y < 40; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            xpDrop = true;
-                            return true;
-                        }
-                    }
-                }
+                xpDrop = true;
+                return true;
+            } else
+            {
+                xpDrop = false;
+                return false;
             }
-            xpDrop = false;
-            return false;
         }
 
         public int magePos = 0;
 
         public async void magePosLoop()
         {
-            magerPos1();
-            magerPos2();
-            magerPos3();
-            magerPos4();
-            magerPos5();
-            magerPos6();
-            magerPos7();
+            magePos = checkMagerPos();
             await Task.Delay(100);
             magePosLoop();
         }
@@ -533,11 +465,11 @@ namespace Bot.Scripts.Colo
             {
                 case 1:
                     processor.addMouseClick(244, 167, "gamescreen");
-                    while (magerPos1())
+                    while (magePos == 1)
                     {
                         await Task.Delay(100);
                     }
-                    while (!magerPos6())
+                    while (magePos != 6)
                     {
                         await Task.Delay(100);
                     }
@@ -605,11 +537,11 @@ namespace Bot.Scripts.Colo
                     {
                         processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
                         await Task.Delay(100);
-                        while (magerPos2())
+                        while (magePos == 2)
                         {
                             await Task.Delay(100);
                         }
-                        while (!magerPos2())
+                        while (magePos != 2)
                         {
                             await Task.Delay(100);
                         }
@@ -677,12 +609,12 @@ namespace Bot.Scripts.Colo
                 case 3:
                     Console.WriteLine("mager pos 3");
                     processor.addMouseClick(232, 157, "gamescreen");
-                    while (!magerPos7())
+                    while (magePos != 7)
                     {
                         await Task.Delay(100);
                     }
                     processor.addMouseClick(282, 180, "gamescreen");
-                    while (!magerPos4())
+                    while (magePos != 4)
                     {
                         await Task.Delay(100);
                     }
@@ -743,7 +675,7 @@ namespace Bot.Scripts.Colo
                     return;
                 case 4:
                     processor.addMouseClick(284, 165);
-                    while (magerPos4())
+                    while (magePos == 4)
                     {
                         await Task.Delay(100);
                     }
@@ -795,12 +727,12 @@ namespace Bot.Scripts.Colo
                     return;
                 default:
                     processor.addMouseClick(232, 157, "gamescreen");
-                    while (!magerPos7())
+                    while (magePos != 7)
                     {
                         await Task.Delay(100);
                     }
                     processor.addMouseClick(282, 180, "gamescreen");
-                    while (!magerPos4())
+                    while (magePos != 4)
                     {
                         await Task.Delay(100);
                     }
@@ -1013,167 +945,91 @@ namespace Bot.Scripts.Colo
         }
         public bool meleeNextToMager()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 631, clientCoords[1] + 61, 0, 0, new Size(5, 5));
-                }
-
-                for (int x = 0; x < 4; x++)
-                {
-                    for (int y = 0; y < 4; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(5, 5, 631, 61, 255, 0, 0);
         }
         public bool meleeNorth()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 635, clientCoords[1] + 61, 0, 0, new Size(5, 5));
-                }
-
-                for (int x = 0; x < 4; x++)
-                {
-                    for (int y = 0; y < 4; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(5, 5, 635, 61, 255, 0, 0);
         }
         public bool meleeWest()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 619, clientCoords[1] + 77, 0, 0, new Size(5, 5));
-                }
-
-                for (int x = 0; x < 4; x++)
-                {
-                    for (int y = 0; y < 4; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(5, 5, 619, 77, 255, 0, 0);
         }
         public bool meleeWest2()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 627, clientCoords[1] + 77, 0, 0, new Size(5, 5));
-                }
-
-                for (int x = 0; x < 4; x++)
-                {
-                    for (int y = 0; y < 4; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(5, 5, 627, 77, 255, 0, 0);
         }
         public bool magerOnTop()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(100, 50))
+            if (checkColor(100, 50, 589, 25, 0, 0, 255))
             {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 589, clientCoords[1] + 25, 0, 0, new Size(100, 50));
-                }
-
-                for (int x = 0; x < 48; x++)
-                {
-                    for (int y = 0; y < 48; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            return true;
-                        }
-                    }
-                }
-                for (int x = 0; x < 99; x++)
-                {
-                    for (int y = 0; y < 24; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            return true;
-                        }
-                    }
-                }
+                return true;
             }
-            return false;
+            else if (checkColor(99, 24, 589, 25, 0, 0, 255))
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
         public bool magerOnMap()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(106, 86))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 588, clientCoords[1] + 30, 0, 0, new Size(106, 86));
-                }
-
-                for (int x = 0; x < 105; x++)
-                {
-                    for (int y = 0; y < 85; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(106, 86, 588, 30, 0, 0, 255);
         }
         public bool meleeOnMap()
         {
+            return checkColor(106, 86, 588, 30, 255, 0, 0);
+        }
+
+        public int checkMagerPos()
+        {
+            if (checkColor(3, 3, 673, 63, 0, 0, 255))
+            {
+                return 1;
+            }
+            if (checkColor(3, 3, 677, 63, 0, 0, 255))
+            {
+                return 3;
+            }
+            if (checkColor(3, 3, 637, 63, 0, 0, 255))
+            {
+                return 2;
+            }
+            if (checkColor(3, 3, 645, 79, 0, 0, 255))
+            {
+                return 4;
+            }
+            if (checkColor(13, 13, 665, 94, 0, 0, 255))
+            {
+                return 5;
+            }
+            if (checkColor(3, 3, 665, 75, 0, 0, 255))
+            {
+                return 6;
+            }
+            if (checkColor(3, 3, 653, 79, 0, 0, 255))
+            {
+                return 7;
+            }
+            return 0;
+        }
+        public bool checkColor(int a, int b, int posX, int posY, int red, int green, int blue)
+        {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(106, 86))
+            using (Bitmap bitmap = new Bitmap(a, b))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 588, clientCoords[1] + 30, 0, 0, new Size(106, 86));
+                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
                 }
 
-                for (int x = 0; x < 105; x++)
+                for (int x = 0; x < a; a++)
                 {
-                    for (int y = 0; y < 85; y++)
+                    for (int y = 0; y < b; b++)
                     {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
+                        if (bitmap.GetPixel(x, y).R == red && bitmap.GetPixel(x, y).G == green && bitmap.GetPixel(x, y).B == blue)
                         {
                             return true;
                         }
@@ -1182,167 +1038,22 @@ namespace Bot.Scripts.Colo
             }
             return false;
         }
-        public bool magerPos1()
+        public bool checkDoorPixel(int a, int b, int posX, int posY)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
+            using (Bitmap bitmap = new Bitmap(a, b))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 673, clientCoords[1] + 63, 0, 0, new Size(3, 3));
+                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
                 }
 
-                for (int x = 0; x < 2; x++)
+                for (int x = 0; x < a; a++)
                 {
-                    for (int y = 0; y < 2; y++)
+                    for (int y = 0; y < b; b++)
                     {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
+                        if (bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).R >= 220 && bitmap.GetPixel(x, y).B == 0)
                         {
-                            magePos = 1;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos6()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 665, clientCoords[1] + 75, 0, 0, new Size(3, 3));
-                }
-
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 6;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos7()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 653, clientCoords[1] + 79, 0, 0, new Size(3, 3));
-                }
-
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 7;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos5()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(13, 13))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 665, clientCoords[1] + 94, 0, 0, new Size(13, 13));
-                }
-
-                for (int x = 0; x < 12; x++)
-                {
-                    for (int y = 0; y < 12; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 5;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos4()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 645, clientCoords[1] + 79, 0, 0, new Size(3, 3));
-                }
-
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 4;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos3()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 677, clientCoords[1] + 63, 0, 0, new Size(3, 3));
-                }
-
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 3;
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool magerPos2()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(3, 3))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 637, clientCoords[1] + 63, 0, 0, new Size(3, 3));
-                }
-
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            magePos = 2;
                             return true;
                         }
                     }
@@ -1421,56 +1132,13 @@ namespace Bot.Scripts.Colo
         }
         public bool leaveInterface()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(10, 10))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 359, clientCoords[1] + 360, 0, 0, new Size(10, 10));
-                }
-
-                for (int x = 0; x < 10; x++)
-                {
-                    for (int y = 0; y < 10; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 128 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(10, 10, 359, 360, 128, 0, 0);
         }
 
         public bool meleeFremCheck()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 633, clientCoords[1] + 79, 0, 0, new Size(5, 5));
-                }
-
-                for (int x = 0; x < 4; x++)
-                {
-                    for (int y = 0; y < 4; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            meleeFrem = true;
-                            return true;
-                        }
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            meleeFrem = false;
-            return false;
+            meleeFrem = checkColor(5, 5, 633, 79, 255, 255, 0);
+            return checkColor(5, 5, 633, 79, 255, 255, 0);
         }
         public bool colorDoor()
         {
@@ -1524,121 +1192,16 @@ namespace Bot.Scripts.Colo
         }
         public bool atMiddleTile()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 633, clientCoords[1] + 143, 0, 0, new Size(5, 5));
-                }
-
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkDoorPixel(5, 5, 633, 143);
         }
         public bool atCornerTile()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 665, clientCoords[1] + 106, 0, 0, new Size(5, 5));
-                }
-
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-        public bool atFremTile()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 673, clientCoords[1] + 106, 0, 0, new Size(5, 5));
-                }
-
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkDoorPixel(5, 5, 665, 106);
         }
 
         public bool atStartTile()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 639, clientCoords[1] + 102, 0, 0, new Size(5, 5));
-                }
-
-                for (int i = 0; i < 4; i++)
-                {
-                    for (int j = 0; j < 4; j++)
-                    {
-                        if (bitmap.GetPixel(i, j).G == 0 && bitmap.GetPixel(i, j).R >= 220 && bitmap.GetPixel(i, j).B == 0)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkDoorPixel(5, 5, 639, 102);
         }
-
-        public bool green()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 257, clientCoords[1] + 6, 0, 0, new Size(5, 5));
-                }
-                for (int x = 0; x < 5; x++)
-                {
-                    for (int y = 0; y < 5; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
-                        {
-                            Console.WriteLine($"Found green at x:{x.ToString()}, y:{y.ToString()}");
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
-
     }
 }
