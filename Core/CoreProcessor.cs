@@ -322,141 +322,152 @@ namespace Bot.Core
             colo.clientCoords = clientCoords;
             hunter.clientCoords = clientCoords;
             wave2.clientCoords = clientCoords;
-
-            if (script == "gotr")
+            switch (script)
             {
-                gotr.interfaces = interfaces;
-                gotr.inventory = inventory;
-                gotr.player = player;
-                gotr.xpDrops = xpDrops;
-                gotr.processor = this;
-                gotr.enterPortal();
-            }
-            if (script == "baba")
-            {
-                baba.interfaces = interfaces;
-                baba.inventory = inventory;
-                baba.player = player;
-                baba.xpDrops = xpDrops;
-                baba.processor = this;
-                baba.startScript();
-            }
-            if (script == "natures")
-            {
-                natures.interfaces = interfaces;
-                natures.inventory = inventory;
-                natures.player = player;
-                natures.xpDrops = xpDrops;
-                natures.processor = this;
-                natures.startScript();
-            }
-            if (script == "ladder")
-            {
-                natures.interfaces = interfaces;
-                natures.inventory = inventory;
-                natures.player = player;
-                natures.xpDrops = xpDrops;
-                natures.processor = this;
-                natures.ladPos();
-            }
-            if (script == "anglers")
-            {
-                anglers.interfaces = interfaces;
-                anglers.inventory = inventory;
-                anglers.player = player;
-                anglers.xpDrops = xpDrops;
-                anglers.processor = this;
-                anglers.startScript();
-            }
-            if (script == "fletch")
-            {
-                fletch.interfaces = interfaces;
-                fletch.inventory = inventory;
-                fletch.player = player;
-                fletch.xpDrops = xpDrops;
-                fletch.processor = this;
-                fletch.startScript();
-            }
-            if (script == "corp")
-            {
-                corpTank.interfaces = interfaces;
-                corpTank.inventory = inventory;
-                corpTank.player = player;
-                corpTank.xpDrops = xpDrops;
-                corpTank.processor = this;
-                corpTank.inventory.processor = this;
-                corpTank.startScript();
-            }
-            if (script == "colo")
-            {
-                colo.prayer = prayer;
-                prayer.setPrayerArray();
-                prayer.processor = this;
-                colo.interfaces = interfaces;
-                colo.inventory = inventory;
-                colo.player = player;
-                colo.xpDrops = xpDrops;
-                colo.processor = this;
-                colo.inventory.processor = this;
-                colo.equipment = equipment;
-                busy = false;
-                colo.inventory.inventorySetup();
-                colo.equipment.setEquipment();
-                wave2.equipment = equipment;
-                wave2.player = player;
-                wave2.processor = this;
-                wave2.inventory = inventory;
-                wave2.xpDrops = xpDrops;
-                wave2.interfaces = interfaces;
-                wave2.clientCoords = clientCoords;
-                wave2.prayer = prayer;
-                colo.wave2 = wave2;
-                await Task.Delay(1000);
-                colo.startScript();
-                initPrayer();
-                tickCounter();
-                await Task.Delay(1000);
-            }
-            if (script == "wave2")
-            {
-                wave2.prayer = prayer;
-                prayer.setPrayerArray();
-                prayer.processor = this;
-                wave2.equipment = equipment;
-                wave2.player = player;
-                wave2.processor = this;
-                wave2.inventory = inventory;
-                wave2.xpDrops = xpDrops;
-                wave2.interfaces = interfaces;
-                wave2.clientCoords = clientCoords;
-                wave2.inventory.processor = this;
-                busy = false;
-                wave2.inventory.inventorySetup();
-                wave2.equipment.setEquipment();
-                wave2.checkLoop();
-                await Task.Delay(1000);
-                initPrayer();
-                tickCounter();
-                wave2.killSingleRanger1();
-            }
-            if (script == "prayer test")
-            {
-                colo.interfaces = interfaces;
-                colo.inventory = inventory;
-                colo.player = player;
-                colo.xpDrops = xpDrops;
-                colo.processor = this;
-                colo.inventory.processor = this;
-            }
-            if (script == "hunter")
-            {
-                hunter.interfaces = interfaces;
-                hunter.inventory = inventory;
-                hunter.player = player;
-                hunter.xpDrops = xpDrops;
-                hunter.processor = this;
-                hunter.inventory.processor = this;
-                hunter.startScript();
+                case "gotr":
+                    gotr.interfaces = interfaces;
+                    gotr.inventory = inventory;
+                    gotr.player = player;
+                    gotr.xpDrops = xpDrops;
+                    gotr.processor = this;
+                    gotr.enterPortal();
+                    break;
+                case "baba":
+                    baba.interfaces = interfaces;
+                    baba.inventory = inventory;
+                    baba.player = player;
+                    baba.xpDrops = xpDrops;
+                    baba.processor = this;
+                    baba.startScript();
+                    break;
+                case "natures":
+                    natures.interfaces = interfaces;
+                    natures.inventory = inventory;
+                    natures.player = player;
+                    natures.xpDrops = xpDrops;
+                    natures.processor = this;
+                    natures.startScript();
+                    break;
+                case "anglers":
+                    Console.WriteLine("wadawdawd2");
+                    anglers.interfaces = interfaces;
+                    anglers.inventory = inventory;
+                    anglers.player = player;
+                    anglers.xpDrops = xpDrops;
+                    anglers.processor = this;
+                    anglers.startScript();
+                    break;
+                case "feltch":
+                    fletch.interfaces = interfaces;
+                    fletch.inventory = inventory;
+                    fletch.player = player;
+                    fletch.xpDrops = xpDrops;
+                    fletch.processor = this;
+                    fletch.startScript();
+                    break;
+                case "corp":
+                    corpTank.interfaces = interfaces;
+                    corpTank.inventory = inventory;
+                    corpTank.player = player;
+                    corpTank.xpDrops = xpDrops;
+                    corpTank.processor = this;
+                    corpTank.inventory.processor = this;
+                    corpTank.startScript();
+                    break;
+                case "colo":
+                    colo.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    colo.interfaces = interfaces;
+                    colo.inventory = inventory;
+                    colo.player = player;
+                    colo.xpDrops = xpDrops;
+                    colo.processor = this;
+                    colo.inventory.processor = this;
+                    colo.equipment = equipment;
+                    busy = false;
+                    colo.inventory.inventorySetup();
+                    colo.equipment.setEquipment();
+                    wave2.equipment = equipment;
+                    wave2.player = player;
+                    wave2.processor = this;
+                    wave2.inventory = inventory;
+                    wave2.xpDrops = xpDrops;
+                    wave2.interfaces = interfaces;
+                    wave2.clientCoords = clientCoords;
+                    wave2.prayer = prayer;
+                    colo.wave2 = wave2;
+                    await Task.Delay(1000);
+                    colo.startScript();
+                    initPrayer();
+                    tickCounter();
+                    await Task.Delay(1000);
+                    break;
+                case "wave2":
+                    wave2.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    wave2.equipment = equipment;
+                    wave2.player = player;
+                    wave2.processor = this;
+                    wave2.inventory = inventory;
+                    wave2.xpDrops = xpDrops;
+                    wave2.interfaces = interfaces;
+                    wave2.clientCoords = clientCoords;
+                    wave2.inventory.processor = this;
+                    busy = false;
+                    wave2.inventory.inventorySetup();
+                    wave2.equipment.setEquipment();
+                    wave2.checkLoop();
+                    await Task.Delay(1000);
+                    initPrayer();
+                    tickCounter();
+                    wave2.killSingleRanger1();
+                    break;
+                case "hunter":
+                    hunter.interfaces = interfaces;
+                    hunter.inventory = inventory;
+                    hunter.player = player;
+                    hunter.xpDrops = xpDrops;
+                    hunter.processor = this;
+                    hunter.inventory.processor = this;
+                    hunter.startScript();
+                    break;
+                case "test":
+                    colo.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    colo.interfaces = interfaces;
+                    colo.inventory = inventory;
+                    colo.player = player;
+                    colo.xpDrops = xpDrops;
+                    colo.processor = this;
+                    colo.inventory.processor = this;
+                    colo.equipment = equipment;
+                    busy = false;
+                    colo.inventory.inventorySetup();
+                    colo.equipment.setEquipment();
+                    wave2.equipment = equipment;
+                    wave2.player = player;
+                    wave2.processor = this;
+                    wave2.inventory = inventory;
+                    wave2.xpDrops = xpDrops;
+                    wave2.interfaces = interfaces;
+                    wave2.clientCoords = clientCoords;
+                    wave2.prayer = prayer;
+                    colo.wave2 = wave2;
+                    await Task.Delay(1000);
+                    if(colo.atCornerTile())
+                    {
+                        Console.WriteLine("At corner tile");
+                    } else
+                    {
+                        Console.WriteLine("Not at corner tile");
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Unkown script");
+                    break;
             }
             busy = false;
         }

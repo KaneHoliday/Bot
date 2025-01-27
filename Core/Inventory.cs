@@ -25,34 +25,34 @@ namespace Bot.Core
 
         public void inventorySetup()
         {
-            inventory[0] = "eclipse moon chestplate";
-            inventory[1] = "venator bow";
-            inventory[2] = "dragon defender";
-            inventory[3] = "abyssal whip";
-            inventory[4] = "eclipse moon tassets";
-            inventory[5] = "amulet of anguish";
+            inventory[0] = "venator bow";
+            inventory[1] = "masori assembler";
+            inventory[2] = "infernal cape";
+            inventory[3] = "fighters torso";
+            inventory[4] = "necklace of anguish";
+            inventory[5] = "armadyl dhide top";
             inventory[6] = "amulet of fury";
-            inventory[7] = "ahrims robeskirt";
-            inventory[8] = "amethyst arrow";
-            inventory[9] = "regen bracelet";
-            inventory[10] = "saradomin godsword";
-            inventory[11] = "eclipse atlatl";
-            inventory[12] = "";
+            inventory[7] = "saradomin godsword";
+            inventory[8] = "ranging potion (4)";
+            inventory[9] = "osmumtens fang";
+            inventory[10] = "avernic defender";
+            inventory[11] = "";
+            inventory[12] = "ranging potion (4)";
             inventory[13] = "shark";
             inventory[14] = "shark";
             inventory[15] = "shark";
-            inventory[15] = "super combat potion (4)";
-            inventory[15] = "ranging potion (4)";
-            inventory[15] = "shark";
-            inventory[15] = "shark";
-            inventory[15] = "prayer potion (4)";
-            inventory[15] = "shark";
-            inventory[15] = "shark";
-            inventory[15] = "shark";
-            inventory[24] = "rune pouch";
-            inventory[15] = "air rune";
-            inventory[26] = "saturated heart";
-            inventory[27] = "shark";
+            inventory[16] = "super combat potion (4)";
+            inventory[17] = "super restore (4)";
+            inventory[18] = "super restore (4)";
+            inventory[19] = "shark";
+            inventory[20] = "super combat potion (4)";
+            inventory[21] = "";
+            inventory[22] = "";
+            inventory[23] = "shark";
+            inventory[24] = "saturated heart";
+            inventory[25] = "zaryte crossbow";
+            inventory[26] = "diamond bolts";
+            inventory[27] = "rune pouch";
         }
 
         public void clickInventorySlot(int x)

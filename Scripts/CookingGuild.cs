@@ -2,8 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Security.Policy;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace Bot.Scripts
 {
@@ -26,6 +29,7 @@ namespace Bot.Scripts
 
         public void startScript()
         {
+            Console.WriteLine("starting angs");
             withdrawAnglers();
             updateConsole();
             startTime();
@@ -51,19 +55,22 @@ namespace Bot.Scripts
 
         public async void withdrawAnglers()
         {
+            Console.WriteLine("Withdraw anglers");
             if (bankOpen())
             {
-                processor.addMouseClick(442, 309);
-                await Task.Delay(100);
-                processor.addMouseClick(229, 132);
+                Console.WriteLine("Bank open");
+                processor.addMouseClick(442, 309, "gamescreen");
                 await Task.Delay(600);
-                processor.PressKey((byte)Keys.Escape, 1);
-                await Task.Delay(100);
+                processor.addMouseClick(229, 132, "gamescreen");
+                await Task.Delay(600);
+                processor.addMouseClick(484, 19, "gamescreen");
+                await Task.Delay(600);
                 processor.addMouseClick(308, 314);
                 waitForChatbox();
             }
             else
             {
+                Console.WriteLine("Bank not open");
                 await Task.Delay(100);
                 withdrawAnglers();
             }
@@ -117,64 +124,33 @@ namespace Bot.Scripts
 
         public bool bankOpen()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 53, clientCoords[1] + 19, 0, 0, new Size(5, 5));
-                }
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 152 && bitmap.GetPixel(x, y).B == 31)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(5, 5, 53, 19, 255, 152, 31);
         }
 
         public bool hasAnglers()
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(170, 250))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 556, clientCoords[1] + 209, 0, 0, new Size(170, 250));
-                }
-                for (int x = 0; x < 170; x++)
-                {
-                    for (int y = 0; y < 250; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 39 && bitmap.GetPixel(x, y).G == 153 && bitmap.GetPixel(x, y).B == 87)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
+            return checkColor(170, 250, 556, 209, 39, 153, 87);
         }
 
         public bool chatBox()
         {
+            return checkColor(5, 5, 483, 359, 255, 255, 255);
+        }
+        public bool checkColor(int a, int b, int posX, int posY, int red, int green, int blue)
+        {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(5, 5))
+            using (Bitmap bitmap = new Bitmap(a, b))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 483, clientCoords[1] + 359, 0, 0, new Size(5, 5));
+                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
                 }
-                for (int x = 0; x < 5; x++)
+
+                for (int x = 0; x < a; x++)
                 {
-                    for (int y = 0; y < 5; y++)
+                    for (int y = 0; y < b; y++)
                     {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
+                        if (bitmap.GetPixel(x, y).R == red && bitmap.GetPixel(x, y).G == green && bitmap.GetPixel(x, y).B == blue)
                         {
                             return true;
                         }

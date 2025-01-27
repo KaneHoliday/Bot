@@ -130,26 +130,26 @@ namespace Bot.Scripts.Colo
                 {
                     if (processor.inventory.inventory[i] == "ranging potion (1)")
                     {
-                        inventory.clickItem2("ranging potion (1)", 98);
+                        //inventory.clickItem2("ranging potion (1)", 98);
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (2)")
                     {
-                        inventory.clickItem2("ranging potion (2)", 98);
+                        //inventory.clickItem2("ranging potion (2)", 98);
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (3)")
                     {
-                        inventory.clickItem2("ranging potion (3)", 98);
+                        //inventory.clickItem2("ranging potion (3)", 98);
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (4)")
                     {
-                        inventory.clickItem2("ranging potion (4)", 98);
+                        //inventory.clickItem2("ranging potion (4)", 98);
                     }
                 }
                 inventory.clickItem2("saturated heart", 99);
-                equipMagicFrem();
+                //equipMagicFrem();
                 waitForStartLocation();
             }
-            else if(atStartTile())
+            else if(atMiddleTile())
             {
                 waitForStartLocation();
             }
@@ -157,10 +157,13 @@ namespace Bot.Scripts.Colo
 
         public async void waitForStartLocation()
         {
+            Console.WriteLine("Waiting for start location");
             while (!atCornerTile())
             {
+                Console.WriteLine("No corner tile");
                 await Task.Delay(100);
             }
+            Console.WriteLine("At corner tile");
             await Task.Delay(600);
             Console.WriteLine("At start position");
             processor.addMouseClick(322, 76, "gamescreen");
@@ -174,18 +177,20 @@ namespace Bot.Scripts.Colo
             processor.addMouseClick(339, 281, "gamescreen"); //click on the invocation
             await Task.Delay(200);
             processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
-            while(popup)
+            await Task.Delay(600);
+            processor.addMouseClick(659, 85, "gamescreen"); //accept the wave
+            while (popup)
             {
-                await Task.Delay(300);
-                processor.addMouseClick(315, 181, "gamescreen"); //accept the wave
+                await Task.Delay(10);
             }
-            await Task.Delay(100);
+            await Task.Delay(600);
             prayer.solidMagic();
             while(!atStartTile())
             {
                 await Task.Delay(100);
             }
-            processor.addMouseClick(172, 157, "gamescreen"); //move to the safespot
+            await Task.Delay(600);
+            processor.addMouseClick(175, 157, "gamescreen"); //move to the safespot
             if (waveTicks > 100)
             {
                 saveTimes();
@@ -405,17 +410,18 @@ namespace Bot.Scripts.Colo
                 }
                 equipLongRangeWeapon();
                 await Task.Delay(600);
-            } else
+            }
+            else
             {
                 processor.addMouseClick(270, 165, "gamescreen"); //attack mager
-                while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
+                while (xpDropCount < 2) //minimum 3 attacks to kill mager frem
                 {
                     setFremPrayers();
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
                     }
-                    if ((xpDropCount + 1) >= 3)
+                    if ((xpDropCount + 1) >= 2)
                     {
                         xpDropCount++;
                         break;
@@ -432,7 +438,10 @@ namespace Bot.Scripts.Colo
                 }
                 xpDropCount = 0;
                 Console.WriteLine("Frems dead");
-                equipLongRangeWeapon();
+                if (magePos != 2)
+                {
+                    equipLongRangeWeapon();
+                }
                 await Task.Delay(500);
             }
             solveWave();
@@ -476,16 +485,19 @@ namespace Bot.Scripts.Colo
                     processor.addMouseClick(349, 151, "gamescreen");
                     while (magerOnMap())
                     {
-                        await Task.Delay(600);
+                        await Task.Delay(100);
                     }
-                    await Task.Delay(1800);
+                    processor.addMouseClick(268, 168, "gamescreen");
+                    await Task.Delay(600);
+                    equipMagic();
+                    if (prayer.activePrayer == 1)
+                    {
+                        prayer.turnOff();
+                    }
+                    await Task.Delay(600);
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
-                        processor.addMouseClick(335, 181, "gamescreen");
-                        await Task.Delay(600);
-                        equipMagic();
-                        await Task.Delay(600);
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
@@ -493,15 +505,6 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        processor.addMouseClick(268, 168, "gamescreen");
-                        await Task.Delay(600);
-                        equipMagic();
-                        await Task.Delay(600);
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
-                        await Task.Delay(600);
                         while(!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -527,12 +530,12 @@ namespace Bot.Scripts.Colo
                             await Task.Delay(100);
                         }
                         Console.WriteLine("Melee dead, wave done.");
-                        processor.addMouseClick(325, 182);
                     }
                     waveComplete = true;
                     finishWave();
                     return;
                 case 2:
+                    equipDPSRangeWeapon();
                     if (!moveSkip)
                     {
                         processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
@@ -550,26 +553,18 @@ namespace Bot.Scripts.Colo
                     processor.addMouseClick(256, 121, "gamescreen");
                     while (magerOnMap())
                     {
-                        await Task.Delay(600);
-                        if (meleeNextToMager())
-                        {
-                            equipDPSRangeWeapon();
-                            await Task.Delay(100);
-                            processor.addMouseClick(256, 121, "gamescreen");
-                            while (magerOnMap())
-                            {
-                                await Task.Delay(600);
-                            }
-                        }
+                        await Task.Delay(100);
                     }
-                    await Task.Delay(1800);
+                    equipMagic();
+                    await Task.Delay(600);
+                    if (prayer.activePrayer == 1)
+                    {
+                        prayer.turnOff();
+                    }
+                    await Task.Delay(600);
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
-                        processor.addMouseClick(324, 181, "gamescreen");
-                        await Task.Delay(600);
-                        equipMagic();
-                        await Task.Delay(600);
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
@@ -577,13 +572,6 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        equipMagic();
-                        await Task.Delay(600);
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
-                        await Task.Delay(600);
                         while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -601,7 +589,6 @@ namespace Bot.Scripts.Colo
                             await Task.Delay(100);
                         }
                         Console.WriteLine("Melee dead, wave done.");
-                        processor.addMouseClick(325, 182);
                     }
                     waveComplete = true;
                     finishWave();
@@ -621,17 +608,20 @@ namespace Bot.Scripts.Colo
                     processor.addMouseClick(284, 165);
                     while (magerOnMap())
                     {
-                        await Task.Delay(600);
+                        await Task.Delay(100);
                     }
-                    await Task.Delay(1800);
+                    processor.addMouseClick(646, 80, "gamescreen");
+                    await Task.Delay(600);
+                    equipMagic();
+                    if (prayer.activePrayer == 1)
+                    {
+                        prayer.turnOff();
+                    }
+                    await Task.Delay(600);
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
-                        processor.addMouseClick(350, 182, "gamescreen");
                         Console.WriteLine("mager dead, melee skipped");
-                        await Task.Delay(600);
-                        equipMagic();
-                        await Task.Delay(600);
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
@@ -639,16 +629,6 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        processor.addMouseClick(646, 80, "gamescreen");
-                        await Task.Delay(600);
-                        Console.WriteLine("mager dead");
-                        equipMagic();
-                        await Task.Delay(600);
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
-                        await Task.Delay(600);
                         while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -667,7 +647,6 @@ namespace Bot.Scripts.Colo
                             await Task.Delay(100);
                         }
                         Console.WriteLine("Melee dead, wave done.");
-                        processor.addMouseClick(325, 182);
                     }
                     waveComplete = true;
                     Console.Beep();
@@ -679,14 +658,17 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    await Task.Delay(1800);
+                    processor.addMouseClick(281, 168, "gamescreen");
+                    await Task.Delay(600);
+                    equipMagic();
+                    if (prayer.activePrayer == 1)
+                    {
+                        prayer.turnOff();
+                    }
+                    await Task.Delay(600);
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
-                        await Task.Delay(600);
-                        processor.addMouseClick(350, 182, "gamescreen");
-                        await Task.Delay(600);
-                        equipMagic();
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
@@ -694,15 +676,6 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        processor.addMouseClick(281, 168, "gamescreen");
-                        await Task.Delay(600);
-                        equipMagic();
-                        await Task.Delay(600);
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
-                        await Task.Delay(600);
                         while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -721,7 +694,6 @@ namespace Bot.Scripts.Colo
                         }
                     }
                     Console.WriteLine("Melee dead, wave done.");
-                    processor.addMouseClick(325, 182);
                     waveComplete = true;
                     finishWave();
                     return;
@@ -741,15 +713,18 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
+                    equipMagic();
+                    processor.addMouseClick(646, 80, "gamescreen");
+                    await Task.Delay(600);
+                    if (prayer.activePrayer == 1)
+                    {
+                        prayer.turnOff();
+                    }
+                    await Task.Delay(600);
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
                         Console.WriteLine("Melee dead, wave done.");
-                        processor.addMouseClick(325, 182);
-                        await Task.Delay(600);
-                        Console.WriteLine("Skipped the melee!"); //log this?
-                        equipMagic();
-                        await Task.Delay(600);
                         if (prayer.activePrayer == 1)
                         {
                             prayer.turnOff();
@@ -757,16 +732,6 @@ namespace Bot.Scripts.Colo
                     }
                     else
                     {
-                        processor.addMouseClick(646, 80, "gamescreen");
-                        await Task.Delay(600);
-                        Console.WriteLine("mager dead");
-                        equipMagic();
-                        await Task.Delay(600);
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
-                        await Task.Delay(600);
                         while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
@@ -785,7 +750,6 @@ namespace Bot.Scripts.Colo
                         }
                     }
                     Console.WriteLine("Melee dead, wave done.");
-                    processor.addMouseClick(325, 182);
                     waveComplete = true;
                     finishWave();
                     return;
@@ -816,7 +780,7 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(100);
             }
             await Task.Delay(100);
-            processor.addMouseClick(267, 33);
+            processor.addMouseClick(313, 36);
             while (!chestGuy())
             {
                 await Task.Delay(600);
@@ -847,67 +811,68 @@ namespace Bot.Scripts.Colo
             }
             startScript();
         }
-      
-
-        public async void test11()
-        {
-            inventory.clickItem2("eclipse atlatl", 4, true);
-        }
 
         public async void equipMagicFrem()
         {
-            inventory.clickItem2("staff of light", 4);
+            inventory.clickItem2("kodai wand", 4);
             inventory.clickItem2("tome of fire", 6);
             inventory.clickItem2("occult necklace", 2);
-            inventory.clickItem2("torags legs", 7);
-            inventory.clickItem2("ahrims top", 5);
-            inventory.clickItem2("tormented bracelet", 8);
+            inventory.clickItem2("virtus robetop", 5);
+            inventory.clickItem2("armadyl chaps", 7);
+            inventory.clickItem2("imbued zamorak cape", 1);
         }
         public async void equipMagic()
         {
-            inventory.clickItem2("staff of light", 4);
-            inventory.clickItem2("ahrims robetop", 5);
-            inventory.clickItem2("ahrims robeskirt", 7);
+            inventory.clickItem2("kodai wand", 4);
             inventory.clickItem2("tome of fire", 6);
             inventory.clickItem2("occult necklace", 2);
-            inventory.clickItem2("tormented bracelet", 8);
+            inventory.clickItem2("virtus robetop", 5);
+            inventory.clickItem2("armadyl chaps", 7);
+            inventory.clickItem2("imbued zamorak cape", 1);
         }
         public async void equipRangeFrem()
         {
-            inventory.clickItem2("amulet of anguish", 2);
-            inventory.clickItem2("eclipse moon chestplate", 5);
-            inventory.clickItem2("eclipse moon tassets", 7);
+            inventory.clickItem2("masori assembler", 1);
+            inventory.clickItem2("necklace of anguish", 2);
+            inventory.clickItem2("armadyl dhide top", 5);
+            inventory.clickItem2("armadyl chaps", 7);
             inventory.clickItem2("venator bow", 4, true);
-            inventory.clickItem2("amethyst arrow", 3);
-            inventory.clickItem2("regen bracelet", 8);
+            inventory.clickItem2("amethyst arrows", 3);
         }
         public async void equipRange()
         {
-            inventory.clickItem2("amulet of anguish", 2);
-            inventory.clickItem2("eclipse moon chestplate", 5);
-            inventory.clickItem2("eclipse moon tassets", 7);
-            inventory.clickItem2("eclipse atlatl", 4, true);
-            inventory.clickItem2("atlatl dart", 3);
-            inventory.clickItem2("regen bracelet", 8);
+            inventory.clickItem2("masori assembler", 1);
+            inventory.clickItem2("necklace of anguish", 2);
+            inventory.clickItem2("armadyl dhide top", 5);
+            inventory.clickItem2("armadyl chaps", 7);
+            inventory.clickItem2("venator bow", 4, true);
+            inventory.clickItem2("amethyst arrows", 3);
         }
         public async void equipMeleeFrem()
         {
-            inventory.clickItem2("abyssal whip", 4);
+            inventory.clickItem2("infernal cape", 1);
+            inventory.clickItem2("osmumtens fang", 4);
             inventory.clickItem2("amulet of fury", 2);
-            inventory.clickItem2("torags legs", 7);
-            inventory.clickItem2("regen bracelet", 8);
-            inventory.clickItem2("dragon defender", 6);
+            inventory.clickItem2("fighters torso", 5);
+            inventory.clickItem2("avernic defender", 6);
+        }
+        public async void equipSgs()
+        {
+            inventory.clickItem2("infernal cape", 1);
+            inventory.clickItem2("saradomin godsword", 4, true);
+            inventory.clickItem2("amulet of fury", 2);
+            inventory.clickItem2("fighters torso", 5);
         }
 
         public async void equipLongRangeWeapon()
         {
-            inventory.clickItem2("eclipse atlatl", 4, true);
-            inventory.clickItem2("atlatl dart", 3);
+            inventory.clickItem2("zaryte crossbow", 4);
+            inventory.clickItem2("diamond bolts", 3);
         }
         public async void equipDPSRangeWeapon()
         {
             inventory.clickItem2("venator bow", 4, true);
-            inventory.clickItem2("amethyst arrow", 3);
+            inventory.clickItem2("amethyst arrows", 3);
         }
         public async void equipMelee()
         {
@@ -1025,9 +990,9 @@ namespace Bot.Scripts.Colo
                     g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
                 }
 
-                for (int x = 0; x < a; a++)
+                for (int x = 0; x < a; x++)
                 {
-                    for (int y = 0; y < b; b++)
+                    for (int y = 0; y < b; y++)
                     {
                         if (bitmap.GetPixel(x, y).R == red && bitmap.GetPixel(x, y).G == green && bitmap.GetPixel(x, y).B == blue)
                         {
@@ -1048,9 +1013,9 @@ namespace Bot.Scripts.Colo
                     g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
                 }
 
-                for (int x = 0; x < a; a++)
+                for (int x = 0; x < a; x++)
                 {
-                    for (int y = 0; y < b; b++)
+                    for (int y = 0; y < b; y++)
                     {
                         if (bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).R >= 220 && bitmap.GetPixel(x, y).B == 0)
                         {

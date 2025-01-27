@@ -13,17 +13,17 @@ namespace Bot.Core
 
         public void setEquipment()
         {
-            equipment[0] = "eclipse moon helm";
-            equipment[1] = "bandos cloak";
+            equipment[0] = "neitiznot faceguard";
+            equipment[1] = "imbued zamorak cape";
             equipment[2] = "occult necklace";
-            equipment[3] = "atlatl dart";
-            equipment[4] = "staff of light";
-            equipment[5] = "ahrims robetop";
+            equipment[3] = "amethyst arrows";
+            equipment[4] = "kodai wand";
+            equipment[5] = "virtus robetop";
             equipment[6] = "tome of fire";
-            equipment[7] = "torag platelegs";
-            equipment[8] = "tormented bracelet";
-            equipment[9] = "dragon boots";
-            equipment[10] = "lightbearer";
+            equipment[7] = "armadyl chaps";
+            equipment[8] = "barrows gloves";
+            equipment[9] = "pegasian boots";
+            equipment[10] = "archer ring";
         }
     }
 }
