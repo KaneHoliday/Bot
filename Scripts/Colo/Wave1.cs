@@ -362,8 +362,6 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(100);
             }
-            inventory.clickItem2("saradomin godsword", 4, true); //2 handed weapon
-            await Task.Delay(300);
             prayer.prayPiety(); //turn on piety
             await Task.Delay(300);
             processor.addMouseClick(584, 145, "gamescreen"); //special on
@@ -506,7 +504,10 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour();
+                    prayer.prayRigour(); // turn rigour off
+                    while(!meleeNorth() || !meleeWest() || !popup) {
+                        await Task.Delay(100);
+                    }
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -575,7 +576,10 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour();
+                    prayer.prayRigour(); //rigour off
+                    while(!meleeNorth() || !meleeWest() || !popup) {
+                        await Task.Delay(100);
+                    }
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -633,7 +637,10 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour();
+                    prayer.prayRigour(); //rigour off
+                    while(!meleeNorth() || !meleeWest() || !popup) {
+                        await Task.Delay(100);
+                    }
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -683,6 +690,9 @@ namespace Bot.Scripts.Colo
                     }
                     await Task.Delay(600);
                     prayer.prayRigour();
+                    while(!meleeNorth() || !meleeWest() || !popup) {
+                        await Task.Delay(100);
+                    }
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -740,6 +750,9 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
+                    while(!meleeNorth() || !meleeWest() || !popup) {
+                        await Task.Delay(100);
+                    }
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -870,7 +883,7 @@ namespace Bot.Scripts.Colo
         public async void equipMeleeFrem()
         {
             inventory.clickItem2("infernal cape", 1);
-            inventory.clickItem2("osmumtens fang", 4);
+            inventory.clickItem2("saradomin godsword", 4, true);
             inventory.clickItem2("amulet of fury", 2);
             inventory.clickItem2("fighters torso", 5);
             inventory.clickItem2("avernic defender", 6);
