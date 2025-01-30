@@ -505,7 +505,7 @@ namespace Bot.Scripts.Colo
                     }
                     await Task.Delay(600);
                     prayer.prayRigour(); // turn rigour off
-                    while(!meleeNorth() || !meleeWest() || !popup) {
+                    while(!meleeNorth() && !meleeWest() && !popup) {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap())
@@ -577,7 +577,8 @@ namespace Bot.Scripts.Colo
                     }
                     await Task.Delay(600);
                     prayer.prayRigour(); //rigour off
-                    while(!meleeNorth() || !meleeWest() || !popup) {
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap())
@@ -638,7 +639,8 @@ namespace Bot.Scripts.Colo
                     }
                     await Task.Delay(600);
                     prayer.prayRigour(); //rigour off
-                    while(!meleeNorth() || !meleeWest() || !popup) {
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap())
@@ -690,7 +692,8 @@ namespace Bot.Scripts.Colo
                     }
                     await Task.Delay(600);
                     prayer.prayRigour();
-                    while(!meleeNorth() || !meleeWest() || !popup) {
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap())
@@ -750,7 +753,8 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
-                    while(!meleeNorth() || !meleeWest() || !popup) {
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap())
@@ -803,16 +807,16 @@ namespace Bot.Scripts.Colo
                 wave2.startScript();
                 return;
             }
-            await Task.Delay(100);
-            processor.addMouseClick(79, 293);
-            await Task.Delay(100);
-            processor.addMouseClick(328, 244);
+            await Task.Delay(300);
+            processor.addMouseClick(79, 293, "gamescreen");
+            await Task.Delay(300);
+            processor.addMouseClick(328, 244, "gamescreen");
             while (popup)
             {
                 await Task.Delay(100);
             }
-            await Task.Delay(100);
-            processor.addMouseClick(313, 36);
+            await Task.Delay(300);
+            processor.addMouseClick(313, 36, "gamescreen");
             while (!chestGuy())
             {
                 await Task.Delay(600);
@@ -831,6 +835,7 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(100);
             }
             processor.PressKey((byte)Keys.NumPad1, 1);
+            await Task.Delay(3000);
             while (!colorDoor())
             {
                 await Task.Delay(600);
@@ -886,7 +891,6 @@ namespace Bot.Scripts.Colo
             inventory.clickItem2("saradomin godsword", 4, true);
             inventory.clickItem2("amulet of fury", 2);
             inventory.clickItem2("fighters torso", 5);
-            inventory.clickItem2("avernic defender", 6);
         }
         public async void equipSgs()
         {
