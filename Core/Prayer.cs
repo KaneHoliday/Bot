@@ -11,6 +11,7 @@ namespace Bot.Core
         public CoreProcessor processor;
         public int[] prayerArray = new int[10];
         public int activePrayer = 0;
+        public int boostPrayer = 0;
 
         public void setPrayerArray()
         {
@@ -115,6 +116,45 @@ namespace Bot.Core
             else
             {
                 activePrayer = 1;
+            }
+        }
+
+        public void prayPiety()
+        {
+            processor.addMouseClick(600, 412, "prayer");
+            if (boostPrayer == 1)
+            {
+                boostPrayer = 0;
+            }
+            else
+            {
+                boostPrayer = 1;
+            }
+        }
+
+        public void prayRigour()
+        {
+            processor.addMouseClick(640, 412, "prayer");
+            if (boostPrayer == 2)
+            {
+                boostPrayer = 0;
+            }
+            else
+            {
+                boostPrayer = 2;
+            }
+        }
+
+        public void prayAugury()
+        {
+            processor.addMouseClick(680, 412, "prayer");
+            if (boostPrayer == 3)
+            {
+                boostPrayer = 0;
+            }
+            else
+            {
+                boostPrayer = 3;
             }
         }
     }

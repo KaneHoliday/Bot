@@ -130,19 +130,23 @@ namespace Bot.Scripts.Colo
                 {
                     if (processor.inventory.inventory[i] == "ranging potion (1)")
                     {
-                        //inventory.clickItem2("ranging potion (1)", 98);
+                        inventory.clickItem2("ranging potion (1)", 98);
+                        break;
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (2)")
                     {
-                        //inventory.clickItem2("ranging potion (2)", 98);
+                        inventory.clickItem2("ranging potion (2)", 98);
+                        break;
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (3)")
                     {
-                        //inventory.clickItem2("ranging potion (3)", 98);
+                        inventory.clickItem2("ranging potion (3)", 98);
+                        break;
                     }
                     else if (processor.inventory.inventory[i] == "ranging potion (4)")
                     {
-                        //inventory.clickItem2("ranging potion (4)", 98);
+                        inventory.clickItem2("ranging potion (4)", 98);
+                        break;
                     }
                 }
                 inventory.clickItem2("saturated heart", 99);
@@ -358,23 +362,23 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(100);
             }
+            inventory.clickItem2("saradomin godsword", 4, true); //2 handed weapon
+            await Task.Delay(300);
+            prayer.prayPiety(); //turn on piety
+            await Task.Delay(300);
+            processor.addMouseClick(584, 145, "gamescreen"); //special on
+            await Task.Delay(300);
+            while (xpDrop)
+            {
+                await Task.Delay(100);
+            }
             processor.addMouseClick(256, 178, "gamescreen"); //attack ranger
             while(!xpDrop)
             {
                 await Task.Delay(100);
             }
-            inventory.clickItem2("saradomin godsword", 4, true); //2 handed weapon
-            await Task.Delay(600);
-            processor.addMouseClick(584, 145, "gamescreen"); //special on
-            while (xpDrop)
-            {
-                await Task.Delay(10);
-            }
-            processor.addMouseClick(256, 178, "gamescreen"); //attack ranger
-            while (!xpDrop)
-            {
-                await Task.Delay(100);
-            }
+            Console.Write("See xp drop");
+            prayer.prayPiety(); //turn off piety
             xpDropCount = 0;
             fremsCleared++;
             player.updateHealth();
@@ -389,6 +393,7 @@ namespace Bot.Scripts.Colo
             }
             if (magePos == 4)
             {
+                prayer.prayRigour();
                 processor.addMouseClick(284, 165);
                 while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
                 {
@@ -452,6 +457,11 @@ namespace Bot.Scripts.Colo
             {
                 xpDrop = true;
                 return true;
+            }
+            else if (checkColor(20, 40, 492, 111, 21, 128, 173))
+            {
+                xpDrop = true;
+                return true;
             } else
             {
                 xpDrop = false;
@@ -473,6 +483,7 @@ namespace Bot.Scripts.Colo
             switch(magePos)
             {
                 case 1:
+                    prayer.prayRigour();
                     processor.addMouseClick(244, 167, "gamescreen");
                     while (magePos == 1)
                     {
@@ -495,6 +506,7 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
+                    prayer.prayRigour();
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -535,6 +547,7 @@ namespace Bot.Scripts.Colo
                     finishWave();
                     return;
                 case 2:
+                    prayer.prayRigour();
                     equipDPSRangeWeapon();
                     if (!moveSkip)
                     {
@@ -562,6 +575,7 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
+                    prayer.prayRigour();
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -594,6 +608,7 @@ namespace Bot.Scripts.Colo
                     finishWave();
                     return;
                 case 3:
+                    prayer.prayRigour();
                     Console.WriteLine("mager pos 3");
                     processor.addMouseClick(232, 157, "gamescreen");
                     while (magePos != 7)
@@ -618,6 +633,7 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
+                    prayer.prayRigour();
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -666,6 +682,7 @@ namespace Bot.Scripts.Colo
                         prayer.turnOff();
                     }
                     await Task.Delay(600);
+                    prayer.prayRigour();
                     if (!meleeOnMap())
                     {
                         meleeSkips++;
@@ -698,6 +715,7 @@ namespace Bot.Scripts.Colo
                     finishWave();
                     return;
                 default:
+                    prayer.prayRigour();
                     processor.addMouseClick(232, 157, "gamescreen");
                     while (magePos != 7)
                     {
@@ -716,6 +734,7 @@ namespace Bot.Scripts.Colo
                     equipMagic();
                     processor.addMouseClick(646, 80, "gamescreen");
                     await Task.Delay(600);
+                    prayer.prayRigour();
                     if (prayer.activePrayer == 1)
                     {
                         prayer.turnOff();
@@ -785,15 +804,15 @@ namespace Bot.Scripts.Colo
             {
                 await Task.Delay(600);
             }
-            await Task.Delay(100);
+            await Task.Delay(300);
             processor.addMouseClick(337, 289);
             claims++;
             fremsCleared = 0;
-            await Task.Delay(100);
+            await Task.Delay(300);
             processor.addMouseClick(371, 28, "gamescreen");
-            await Task.Delay(100);
+            await Task.Delay(300);
             processor.addMouseClick(308, 141, "gamescreen");
-            await Task.Delay(100);
+            await Task.Delay(300);
             while (!leaveInterface())
             {
                 await Task.Delay(100);

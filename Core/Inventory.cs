@@ -33,16 +33,16 @@ namespace Bot.Core
             inventory[5] = "armadyl dhide top";
             inventory[6] = "amulet of fury";
             inventory[7] = "saradomin godsword";
-            inventory[8] = "ranging potion (4)";
+            inventory[8] = "rune pouch";
             inventory[9] = "osmumtens fang";
             inventory[10] = "avernic defender";
             inventory[11] = "";
             inventory[12] = "ranging potion (4)";
-            inventory[13] = "shark";
-            inventory[14] = "shark";
-            inventory[15] = "shark";
-            inventory[16] = "super combat potion (4)";
-            inventory[17] = "super restore (4)";
+            inventory[13] = "ranging potion (4)";
+            inventory[14] = "ranging potion (4)";
+            inventory[15] = "ranging potion (4)";
+            inventory[16] = "ranging potion (4)";
+            inventory[17] = "ranging potion (4)";
             inventory[18] = "super restore (4)";
             inventory[19] = "shark";
             inventory[20] = "super combat potion (4)";
@@ -52,7 +52,7 @@ namespace Bot.Core
             inventory[24] = "saturated heart";
             inventory[25] = "zaryte crossbow";
             inventory[26] = "diamond bolts";
-            inventory[27] = "rune pouch";
+            inventory[27] = "";
         }
 
         public void clickInventorySlot(int x)
