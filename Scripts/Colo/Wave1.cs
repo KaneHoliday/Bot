@@ -384,7 +384,7 @@ namespace Bot.Scripts.Colo
             prayer.solidMagic();
             await Task.Delay(500);
             equipRangeFrem(); //has ven bow as weapon
-            await Task.Delay(100);
+            await Task.Delay(300);
             while (xpDrop)
             {
                 await Task.Delay(100);
@@ -392,6 +392,7 @@ namespace Bot.Scripts.Colo
             if (magePos == 4)
             {
                 prayer.prayRigour();
+                await Task.Delay(300);
                 processor.addMouseClick(284, 165);
                 while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
                 {
@@ -549,6 +550,7 @@ namespace Bot.Scripts.Colo
                     return;
                 case 2:
                     prayer.prayRigour();
+                    await Task.Delay(300);
                     equipDPSRangeWeapon();
                     if (!moveSkip)
                     {
