@@ -47,7 +47,21 @@ namespace Bot.Scripts.Colo
         public int waveTicks = 0;
         public int meleeSkips = 0;
 
+        public int chestPosX = 0;
+        public int chestPosY = 0;
+
         public int[] waveTimes = new int[1000];
+
+        public void loadTimes()
+        {
+            string filePath = "output.txt";
+
+            string content = File.ReadAllText(filePath);
+
+            string[] numberStrings = content.Split(',');
+
+            waveTimes = numberStrings.Select(int.Parse).ToArray();
+        }
 
         public async void startTime()
         {
@@ -115,6 +129,7 @@ namespace Bot.Scripts.Colo
         {
             if (firstRun)
             {
+                loadTimes();
                 checkLoop();
                 magePosLoop();
                 startTime();
@@ -123,8 +138,21 @@ namespace Bot.Scripts.Colo
             }
             if(atMiddleTile())
             {
+                processor.addMouseClick(229, 165, "movement");
+                while (!popup)
+                {
+                    await Task.Delay(100);
+                }
+                Console.WriteLine("Popup past");
                 await Task.Delay(200);
-                processor.addMouseClick(116, 312, "movement");
+                processor.addMouseClick(339, 281, "gamescreen"); //click on the invocation
+                await Task.Delay(200);
+                processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
+                while (popup)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(627, 119, "movement");
                 await Task.Delay(200);
                 for (int i = 0; i < processor.inventory.inventory.Length; i++)
                 {
@@ -161,40 +189,13 @@ namespace Bot.Scripts.Colo
 
         public async void waitForStartLocation()
         {
-            Console.WriteLine("Waiting for start location");
-            while (!atCornerTile())
-            {
-                Console.WriteLine("No corner tile");
-                await Task.Delay(100);
-            }
-            Console.WriteLine("At corner tile");
-            await Task.Delay(600);
-            Console.WriteLine("At start position");
-            processor.addMouseClick(322, 76, "gamescreen");
-            await Task.Delay(600);
-            while (!popup)
-            {
-                await Task.Delay(100);
-            }
-            Console.WriteLine("Popup past");
-            await Task.Delay(200);
-            processor.addMouseClick(339, 281, "gamescreen"); //click on the invocation
-            await Task.Delay(200);
-            processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
-            await Task.Delay(600);
-            processor.addMouseClick(659, 85, "gamescreen"); //accept the wave
-            while (popup)
-            {
-                await Task.Delay(10);
-            }
-            await Task.Delay(600);
             prayer.solidMagic();
             while(!atStartTile())
             {
                 await Task.Delay(100);
             }
             await Task.Delay(600);
-            processor.addMouseClick(175, 157, "gamescreen"); //move to the safespot
+            processor.addMouseClick(172, 154, "gamescreen"); //move to the safespot
             if (waveTicks > 100)
             {
                 saveTimes();
@@ -202,6 +203,13 @@ namespace Bot.Scripts.Colo
                 waveTicks = 0;
             }
             await Task.Delay(1200);
+            if (meleeFrem)
+            {
+                while (meleeFrem)
+                {
+                    await Task.Delay(100);
+                }
+            }
             //rightClickMeleeFrem();
             killFrems();
         }
@@ -509,7 +517,7 @@ namespace Bot.Scripts.Colo
                     while(!meleeNorth() && !meleeWest() && !popup) {
                         await Task.Delay(100);
                     }
-                    if (!meleeOnMap())
+                    if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
                         if (prayer.activePrayer == 1)
@@ -539,10 +547,12 @@ namespace Bot.Scripts.Colo
                                 await Task.Delay(100);
                             }
                         }
+                        await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
+                        processor.addMouseClick(653, 38, "gamescreen");
                         Console.WriteLine("Melee dead, wave done.");
                     }
                     waveComplete = true;
@@ -583,7 +593,7 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    if (!meleeOnMap())
+                    if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
                         if (prayer.activePrayer == 1)
@@ -605,11 +615,13 @@ namespace Bot.Scripts.Colo
                         {
                             processor.addMouseClick(204, 167, "gamescreen");
                         }
+                        await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
                         Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(653, 38, "gamescreen");
                     }
                     waveComplete = true;
                     finishWave();
@@ -635,6 +647,7 @@ namespace Bot.Scripts.Colo
                     processor.addMouseClick(646, 80, "gamescreen");
                     await Task.Delay(600);
                     equipMagic();
+                    await Task.Delay(600);
                     if (prayer.activePrayer == 1)
                     {
                         prayer.turnOff();
@@ -645,7 +658,7 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    if (!meleeOnMap())
+                    if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
                         Console.WriteLine("mager dead, melee skipped");
@@ -668,11 +681,12 @@ namespace Bot.Scripts.Colo
                         {
                             processor.addMouseClick(204, 167, "gamescreen");
                         }
-                        await Task.Delay(600);
+                        await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
+                        processor.addMouseClick(653, 38, "gamescreen");
                         Console.WriteLine("Melee dead, wave done.");
                     }
                     waveComplete = true;
@@ -688,6 +702,7 @@ namespace Bot.Scripts.Colo
                     processor.addMouseClick(281, 168, "gamescreen");
                     await Task.Delay(600);
                     equipMagic();
+                    await Task.Delay(600);
                     if (prayer.activePrayer == 1)
                     {
                         prayer.turnOff();
@@ -698,7 +713,7 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    if (!meleeOnMap())
+                    if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
                         if (prayer.activePrayer == 1)
@@ -720,10 +735,12 @@ namespace Bot.Scripts.Colo
                         {
                             processor.addMouseClick(204, 167, "gamescreen");
                         }
+                        await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
+                        processor.addMouseClick(653, 38, "gamescreen");
                     }
                     Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
@@ -746,8 +763,9 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    equipMagic();
                     processor.addMouseClick(646, 80, "gamescreen");
+                    await Task.Delay(600);
+                    equipMagic();
                     await Task.Delay(600);
                     prayer.prayRigour();
                     if (prayer.activePrayer == 1)
@@ -759,7 +777,7 @@ namespace Bot.Scripts.Colo
                     {
                         await Task.Delay(100);
                     }
-                    if (!meleeOnMap())
+                    if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
                         Console.WriteLine("Melee dead, wave done.");
@@ -782,10 +800,12 @@ namespace Bot.Scripts.Colo
                         {
                             processor.addMouseClick(204, 167, "gamescreen");
                         }
+                        await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
+                        processor.addMouseClick(653, 38, "gamescreen");
                     }
                     Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
@@ -818,7 +838,12 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(100);
             }
             await Task.Delay(300);
-            processor.addMouseClick(313, 36, "gamescreen");
+            while(!chestHitbox())
+            {
+                await Task.Delay(100);
+            }
+            processor.addMouseClick(chestPosX + 3, chestPosY + 5, "gamescreen");
+            await Task.Delay(100);
             while (!chestGuy())
             {
                 await Task.Delay(600);
@@ -829,7 +854,10 @@ namespace Bot.Scripts.Colo
             fremsCleared = 0;
             await Task.Delay(300);
             processor.addMouseClick(371, 28, "gamescreen");
-            await Task.Delay(300);
+            while(lootInterface())
+            {
+                await Task.Delay(100);
+            }
             processor.addMouseClick(308, 141, "gamescreen");
             await Task.Delay(300);
             while (!leaveInterface())
@@ -1137,6 +1165,10 @@ namespace Bot.Scripts.Colo
         {
             return checkColor(10, 10, 359, 360, 128, 0, 0);
         }
+        public bool lootInterface()
+        {
+            return checkColor(5, 5, 200, 22, 254, 152, 31);
+        }
 
         public bool meleeFremCheck()
         {
@@ -1161,6 +1193,31 @@ namespace Bot.Scripts.Colo
                         {
                             doorPosX = 78 + i;
                             doorPosY = 43 + j;
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+        public bool chestHitbox()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(95, 160))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 272, clientCoords[1] + 2, 0, 0, new Size(95, 160));
+                }
+
+                for (int i = 0; i < 95; i++)
+                {
+                    for (int j = 0; j < 160; j++)
+                    {
+                        if (bitmap.GetPixel(i, j).R == 0 && bitmap.GetPixel(i, j).G > 200 && bitmap.GetPixel(i, j).B == 0)
+                        {
+                            chestPosX = i + 272;
+                            chestPosY = j + 2;
                             return true;
                         }
                     }
