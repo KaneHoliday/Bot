@@ -1,0 +1,17 @@
+[
+  {
+    "itemName": "Sword",
+    "color1": "#941010",
+    "color2": "#000000"
+  },
+  {
+    "itemName": "Shield",
+    "color1": "#0000FF",
+    "color2": "#000000"
+  },
+  {
+    "itemName": "Potion",
+    "color1": "#00FF00",
+    "color2": "#000000"
+  }
+]

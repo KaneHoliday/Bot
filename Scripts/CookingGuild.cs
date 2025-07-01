@@ -1,160 +1,191 @@
 ﻿using Bot.Core;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net;
-using System.Security.Policy;
-using System.Text;
+using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace Bot.Scripts
 {
+    /// <summary>
+    /// Handles operations for cooking in the Cooking Guild.
+    /// </summary>
     internal class CookingGuild
     {
-
+        // Dependencies injected or initialized elsewhere.
         public Interfaces interfaces;
         public Player player;
         public Inventory inventory;
         public XpDrops xpDrops;
         public CoreProcessor processor;
 
-        public int[] clientCoords = new int[2];
+        // Constants for game screen positions
+        private const int BankClickX = 442;
+        private const int BankClickY = 309;
+        private const int CookClickX = 308;
+        private const int CookClickY = 314;
+        private const int AnglerValue = 8000;
+        private const int AnglersCookedXp = 6440;
+
         public int profit = 0;
         public int anglersCooked = 0;
         public int xpGained = 0;
-        public int seconds;
-        public int minutes;
-        public int hours;
 
-        public void startScript()
+        public int[] clientCoords = new int[2];
+
+        // Timer variables
+        private int seconds;
+        private int minutes;
+        private int hours;
+
+        // Task cancellation token
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+
+        /// <summary>
+        /// Initiates the script execution.
+        /// </summary>
+        public async Task startScript()
         {
-            Console.WriteLine("starting angs");
-            withdrawAnglers();
-            updateConsole();
-            startTime();
+            Console.WriteLine("Starting anglers...");
+            StartTimer();
+            await WithdrawAnglersAsync();
+            await UpdateConsoleAsync(cancellationTokenSource.Token);
         }
 
-        public async void updateConsole()
+        /// <summary>
+        /// Updates console output periodically.
+        /// </summary>
+        private async Task UpdateConsoleAsync(CancellationToken cancellationToken)
         {
-            Console.Clear();
-            if (seconds < 10)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                Console.WriteLine("Time running: " + hours.ToString() + ":" + minutes.ToString() + ":0" + seconds.ToString());
+                Console.Clear();
+                Console.WriteLine($"Time running: {hours:D2}:{minutes:D2}:{seconds:D2}");
+                Console.WriteLine($"Anglers cooked: {anglersCooked}");
+                Console.WriteLine($"XP gained: {xpGained}");
+                Console.WriteLine($"Profit made: {profit}");
+                await Task.Delay(1000, cancellationToken);
             }
-            if (seconds > 9)
-            {
-                Console.WriteLine("Time running: " + hours.ToString() + ":" + minutes.ToString() + ":" + seconds.ToString());
-            }
-            Console.WriteLine("Anglers cooked: " + anglersCooked.ToString());
-            Console.WriteLine("Xp gained: " + xpGained.ToString());
-            Console.WriteLine("Profit made: " + profit.ToString());
-            await Task.Delay(1000);
-            updateConsole();
         }
 
-        public async void withdrawAnglers()
+        /// <summary>
+        /// Withdraws anglers from the bank if the bank is open.
+        /// </summary>
+        private async Task WithdrawAnglersAsync()
         {
-            Console.WriteLine("Withdraw anglers");
-            if (bankOpen())
+            processor.addMouseClick(207, 39, "gamescreen");
+            while (!bankOpen())
             {
-                Console.WriteLine("Bank open");
-                processor.addMouseClick(442, 309, "gamescreen");
-                await Task.Delay(600);
-                processor.addMouseClick(229, 132, "gamescreen");
-                await Task.Delay(600);
-                processor.addMouseClick(484, 19, "gamescreen");
-                await Task.Delay(600);
-                processor.addMouseClick(308, 314);
-                waitForChatbox();
-            }
-            else
-            {
-                Console.WriteLine("Bank not open");
+                Console.WriteLine("Bank not open. Retrying...");
                 await Task.Delay(100);
-                withdrawAnglers();
             }
+
+            Console.WriteLine("Bank open");
+            processor.addMouseClick(442, 309, "gamescreen");
+            await Task.Delay(600);
+            processor.addMouseClick(229, 132);
+            await Task.Delay(600);
+            processor.addMouseClick(484, 19);
+            await Task.Delay(600);
+            processor.addMouseClick(308, 314);
+            await WaitForChatboxAsync();
         }
 
-        public async void waitForChatbox()
+        /// <summary>
+        /// Waits for the chatbox to appear and starts cooking.
+        /// </summary>
+        private async Task WaitForChatboxAsync()
         {
-            if(chatBox())
-            {
-                processor.PressKey((byte)Keys.Space, 1);
-                waitForFinish();
-            } else
+            while (!chatBox())
             {
                 await Task.Delay(100);
-                waitForChatbox();
             }
+
+            processor.PressKey((byte)Keys.Space, 1);
+            await WaitForFinishAsync();
         }
 
-        public async void waitForFinish()
+        /// <summary>
+        /// Waits for cooking to finish and then repeats the process.
+        /// </summary>
+        private async Task WaitForFinishAsync()
         {
-            if (!hasAnglers())
-            {
-                processor.addMouseClick(212, 43);
-                withdrawAnglers();
-                profit += 8000;
-                anglersCooked += 28;
-                xpGained += 6440;
-            } else
+            while (hasAnglers())
             {
                 await Task.Delay(1000);
-                waitForFinish();
             }
+
+            profit += AnglerValue;
+            anglersCooked += 28;
+            xpGained += AnglersCookedXp;
+            await WithdrawAnglersAsync();
         }
 
-        public async void startTime()
+        /// <summary>
+        /// Starts asynchronous timer to track elapsed time.
+        /// </summary>
+        private void StartTimer()
         {
-            await Task.Delay(1000);
-            seconds++;
-            if (seconds > 59)
+            Task.Run(async () =>
             {
-                seconds = 0;
-                minutes++;
-            }
-            if (minutes > 59)
-            {
-                minutes = 0;
-                hours++;
-            }
-            startTime();
-        }
-
-        public bool bankOpen()
-        {
-            return checkColor(5, 5, 53, 19, 255, 152, 31);
-        }
-
-        public bool hasAnglers()
-        {
-            return checkColor(170, 250, 556, 209, 39, 153, 87);
-        }
-
-        public bool chatBox()
-        {
-            return checkColor(5, 5, 483, 359, 255, 255, 255);
-        }
-        public bool checkColor(int a, int b, int posX, int posY, int red, int green, int blue)
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(a, b))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
+                while (!cancellationTokenSource.Token.IsCancellationRequested)
                 {
-                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
-                }
-
-                for (int x = 0; x < a; x++)
-                {
-                    for (int y = 0; y < b; y++)
+                    await Task.Delay(1000);
+                    seconds++;
+                    if (seconds > 59)
                     {
-                        if (bitmap.GetPixel(x, y).R == red && bitmap.GetPixel(x, y).G == green && bitmap.GetPixel(x, y).B == blue)
-                        {
-                            return true;
-                        }
+                        seconds = 0;
+                        minutes++;
                     }
+                    if (minutes > 59)
+                    {
+                        minutes = 0;
+                        hours++;
+                    }
+                }
+            }, cancellationTokenSource.Token);
+        }
+
+        /// <summary>
+        /// Checks if the bank is open by verifying its color on screen.
+        /// </summary>
+        private bool bankOpen()
+        {
+            return CheckColor(5, 5, 53, 19, 255, 152, 31);
+        }
+
+        /// <summary>
+        /// Checks if there are more anglers to cook.
+        /// </summary>
+        private bool hasAnglers()
+        {
+            return CheckColor(170, 250, 556, 209, 39, 153, 87);
+        }
+
+        /// <summary>
+        /// Checks if the chatbox is active.
+        /// </summary>
+        private bool chatBox()
+        {
+            return CheckColor(5, 5, 483, 359, 255, 255, 255);
+        }
+
+        /// <summary>
+        /// Checks color of specified screen area for matching RGB values.
+        /// </summary>
+        private bool CheckColor(int width, int height, int posX, int posY, int red, int green, int blue)
+        {
+            using Bitmap bitmap = new Bitmap(width, height);
+            using Graphics g = Graphics.FromImage(bitmap);
+            g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(width, height));
+
+            for (int x = 0; x < width; x++)
+            {
+                for (int y = 0; y < height; y++)
+                {
+                    var pixel = bitmap.GetPixel(x, y);
+                    if (pixel.R == red && pixel.G == green && pixel.B == blue)
+                        return true;
                 }
             }
             return false;

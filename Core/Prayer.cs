@@ -86,7 +86,7 @@ namespace Bot.Core
 
         public void prayRange()
         {
-            processor.addMouseClick(640, 340,"prayer");
+            processor.addMouseClick(640, 340, "prayer");
             if (activePrayer == 2) {
                 activePrayer = 0;
             } else

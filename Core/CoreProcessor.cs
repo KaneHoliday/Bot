@@ -12,12 +12,14 @@ using System.Numerics;
 using Bot.Scripts.Colo;
 using System.Diagnostics;
 using static System.Windows.Forms.Design.AxImporter;
+using System.Xml.Schema;
+using System.Security.Claims;
 
 namespace Bot.Core
 {
     internal class CoreProcessor
     {
-
+        public int totalTicks = 0;
         [System.Runtime.InteropServices.DllImport("user32.dll")]
         static extern bool SetCursorPos(int x, int y);
 
@@ -53,18 +55,21 @@ namespace Bot.Core
         public Wave1 colo = new Wave1();
         public Hunter hunter = new Hunter();
         public Wave2 wave2 = new Wave2();
+        public FaladorRooftop fally = new FaladorRooftop();
+        public NexDuo nex = new NexDuo();
 
-        public int[] prayerClicks = new int[100000];
-        public int[] movementClicks = new int[100000];
-        public int[] inventoryClicks = new int[100000];
-        public int[] spellbookClicks = new int[100000];
-        public int[] gamescreenClicks = new int[100000];
+        public int[] prayerClicks = new int[1000000];
+        public int[] movementClicks = new int[1000000];
+        public int[] inventoryClicks = new int[1000000];
+        public int[] spellbookClicks = new int[1000000];
+        public int[] gamescreenClicks = new int[1000000];
+        private int[] attackClicks = new int[1000000];
 
-        public int[] tempPClicks = new int[100000];
-        public int[] tempMClicks = new int[100000];
-        public int[] tempIClicks = new int[100000];
-        public int[] tempSClicks = new int[100000];
-        public int[] tempGClicks = new int[100000];
+        public int[] tempPClicks = new int[1000000];
+        public int[] tempMClicks = new int[1000000];
+        public int[] tempIClicks = new int[1000000];
+        public int[] tempSClicks = new int[1000000];
+        public int[] tempGClicks = new int[1000000];
 
         public int[] prayerArray = new int[10];
         public int prayerActive = 0; //0 nothing, 1 mage, 2 range, 3 melee
@@ -82,7 +87,29 @@ namespace Bot.Core
         public int tick = 0;
 
         //prayer array 
-
+        public void captureScreen()
+        {
+            using (Bitmap bitmap = new Bitmap(510, 333))
+            {
+                // Create a graphics object to draw the screenshot
+                using (Graphics graphics = Graphics.FromImage(bitmap))
+                {
+                    // Capture the screen area starting at (x, y)
+                    graphics.CopyFromScreen(clientCoords[0], clientCoords[1], 0, 0, new Size(510, 333));
+                }
+                // Define the target directory
+                string picturesPath = @"C:\Users\corp bot\Documents";
+                // Ensure the directory exists
+                if (!Directory.Exists(picturesPath))
+                {
+                    Directory.CreateDirectory(picturesPath);
+                }
+                // Define the file path directly in D:\Botwatch\pics
+                string filePath = Path.Combine(picturesPath, $"claim {totalTicks.ToString()}.png");
+                // Save the screenshot as a PNG file
+                bitmap.Save(filePath, System.Drawing.Imaging.ImageFormat.Png);
+            }
+        }
         public void initPrayer()
         {
             for (int i = 0; i < prayerArray.Length; i++)
@@ -99,7 +126,7 @@ namespace Bot.Core
 
         public void setNextPrayer(int prayer)
         {
-            Console.WriteLine($"Setting next prayer: {tick}: {prayer.ToString()}");
+            //Console.WriteLine($"Setting next prayer: {tick}: {prayer.ToString()}");
             if (tick <= 8)
             {
                 prayerArray[tick + 2] = prayer;
@@ -116,18 +143,22 @@ namespace Bot.Core
         public int currentTick = 0;
         public async void tickCounter()
         {
-            Console.WriteLine($"Doing tick counter: {tick}");
+            //Console.WriteLine($"Doing tick counter: {tick}");
             while(!tick1())
             {
                 await Task.Delay(10);
             }
             currentTick = tick;
+            totalTicks++;
+            //captureScreen();
             prayer.checkPrayer();
             while (!tick2())
             {
                 await Task.Delay(10);
             }
             currentTick = tick;
+            totalTicks++;
+            //captureScreen();
             tickCounter();
             prayer.checkPrayer();
         }
@@ -136,15 +167,15 @@ namespace Bot.Core
         {
             for(int i = 0; i < prayerArray.Length; i++)
             {
-                Console.Write(prayerArray[i]);
+                //Console.Write(prayerArray[i]);
             }
-            Console.WriteLine("Checked prayers");
+            //Console.WriteLine("Checked prayers");
             if(tick > 8)
             {
                 //Console.WriteLine($"Tick: {tick.ToString()}, Have prayer: {prayerActive.ToString()}, want prayer: {prayerArray[0].ToString()}");
                 if (prayerArray[0] == prayerActive)
                 {
-                    Console.WriteLine("No change needed");
+                    //Console.WriteLine("No change needed");
                     return;
                 }
                 if (prayerArray[0] == 0)
@@ -187,7 +218,7 @@ namespace Bot.Core
                 //Console.WriteLine($"Tick: {tick.ToString()}, Have prayer: {prayerActive.ToString()}, want prayer: {prayerArray[tick + 1].ToString()}");
                 if (prayerArray[tick + 1] == prayerActive)
                 {
-                    Console.WriteLine("No change needed");
+                    //Console.WriteLine("No change needed");
                     return; //do nothing
                 }
                 if (prayerArray[tick + 1] == 0)
@@ -241,7 +272,7 @@ namespace Bot.Core
                 {
                     for (int y = 0; y < 5; y++)
                     {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 0)
+                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G >= 252 && bitmap.GetPixel(x, y).B == 0)
                         {
                             if (currentTick == tick)
                             {
@@ -274,7 +305,7 @@ namespace Bot.Core
                 {
                     for (int y = 0; y < 5; y++)
                     {
-                        if (bitmap.GetPixel(x, y).R == 255 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
+                        if (bitmap.GetPixel(x, y).R >= 252 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
                         {
                             if (currentTick == tick)
                             {
@@ -322,6 +353,9 @@ namespace Bot.Core
             colo.clientCoords = clientCoords;
             hunter.clientCoords = clientCoords;
             wave2.clientCoords = clientCoords;
+            fally.clientCoords = clientCoords;
+            nex.clientCoords = clientCoords;
+            Console.WriteLine("Above the switch");
             switch (script)
             {
                 case "gotr":
@@ -333,12 +367,23 @@ namespace Bot.Core
                     gotr.enterPortal();
                     break;
                 case "baba":
+                    baba.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
                     baba.interfaces = interfaces;
                     baba.inventory = inventory;
                     baba.player = player;
                     baba.xpDrops = xpDrops;
                     baba.processor = this;
+                    baba.inventory.processor = this;
+                    baba.equipment = equipment;
+                    busy = false;
+                    baba.inventory.inventorySetup();
+                    baba.equipment.setEquipment();
+                    await Task.Delay(1000);
                     baba.startScript();
+                    initPrayer();
+                    tickCounter();
                     break;
                 case "natures":
                     natures.interfaces = interfaces;
@@ -349,7 +394,7 @@ namespace Bot.Core
                     natures.startScript();
                     break;
                 case "anglers":
-                    Console.WriteLine("wadawdawd2");
+                    //Console.WriteLine("wadawdawd2");
                     anglers.interfaces = interfaces;
                     anglers.inventory = inventory;
                     anglers.player = player;
@@ -366,15 +411,21 @@ namespace Bot.Core
                     fletch.startScript();
                     break;
                 case "corp":
+                    corpTank.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    corpTank.processor = this;
                     corpTank.interfaces = interfaces;
                     corpTank.inventory = inventory;
                     corpTank.player = player;
                     corpTank.xpDrops = xpDrops;
-                    corpTank.processor = this;
                     corpTank.inventory.processor = this;
+                    initPrayer();
+                    tickCounter();
                     corpTank.startScript();
                     break;
                 case "colo":
+                    Console.WriteLine("Im in the colo case");
                     colo.prayer = prayer;
                     prayer.setPrayerArray();
                     prayer.processor = this;
@@ -398,7 +449,37 @@ namespace Bot.Core
                     wave2.prayer = prayer;
                     colo.wave2 = wave2;
                     await Task.Delay(1000);
+                    Console.WriteLine("About to start the script");
                     colo.startScript();
+                    initPrayer();
+                    tickCounter();
+                    await Task.Delay(1000);
+                    break;
+                case "data":
+                    colo.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    colo.interfaces = interfaces;
+                    colo.inventory = inventory;
+                    colo.player = player;
+                    colo.xpDrops = xpDrops;
+                    colo.processor = this;
+                    colo.inventory.processor = this;
+                    colo.equipment = equipment;
+                    busy = false;
+                    colo.inventory.inventorySetup();
+                    colo.equipment.setEquipment();
+                    wave2.equipment = equipment;
+                    wave2.player = player;
+                    wave2.processor = this;
+                    wave2.inventory = inventory;
+                    wave2.xpDrops = xpDrops;
+                    wave2.interfaces = interfaces;
+                    wave2.clientCoords = clientCoords;
+                    wave2.prayer = prayer;
+                    colo.wave2 = wave2;
+                    await Task.Delay(1000);
+                    //colo.dataLoop();
                     initPrayer();
                     tickCounter();
                     await Task.Delay(1000);
@@ -422,7 +503,7 @@ namespace Bot.Core
                     await Task.Delay(1000);
                     initPrayer();
                     tickCounter();
-                    wave2.killSingleRanger1();
+                    wave2.startScript();
                     break;
                 case "hunter":
                     hunter.interfaces = interfaces;
@@ -434,19 +515,9 @@ namespace Bot.Core
                     hunter.startScript();
                     break;
                 case "test":
-                    colo.prayer = prayer;
+                    wave2.prayer = prayer;
                     prayer.setPrayerArray();
                     prayer.processor = this;
-                    colo.interfaces = interfaces;
-                    colo.inventory = inventory;
-                    colo.player = player;
-                    colo.xpDrops = xpDrops;
-                    colo.processor = this;
-                    colo.inventory.processor = this;
-                    colo.equipment = equipment;
-                    busy = false;
-                    colo.inventory.inventorySetup();
-                    colo.equipment.setEquipment();
                     wave2.equipment = equipment;
                     wave2.player = player;
                     wave2.processor = this;
@@ -454,26 +525,55 @@ namespace Bot.Core
                     wave2.xpDrops = xpDrops;
                     wave2.interfaces = interfaces;
                     wave2.clientCoords = clientCoords;
-                    wave2.prayer = prayer;
-                    colo.wave2 = wave2;
+                    wave2.inventory.processor = this;
+                    busy = false;
+                    wave2.inventory.inventorySetup();
+                    wave2.equipment.setEquipment();
+                    wave2.checkLoop();
                     await Task.Delay(1000);
-                    if(colo.atCornerTile())
-                    {
-                        Console.WriteLine("At corner tile");
-                    } else
-                    {
-                        Console.WriteLine("Not at corner tile");
-                    }
+                    initPrayer();
+                    tickCounter();
+                    wave2.magePosLoop();
+                    Console.WriteLine($"{wave2.rangePos.ToString()}");
+                    wave2.solveWave(4);
+                    break;
+                case "nex":
+                    nex.prayer = prayer;
+                    prayer.setPrayerArray();
+                    prayer.processor = this;
+                    nex.equipment = equipment;
+                    nex.player = player;
+                    nex.processor = this;
+                    nex.inventory = inventory;
+                    nex.xpDrops = xpDrops;
+                    nex.interfaces = interfaces;
+                    nex.clientCoords = clientCoords;
+                    nex.inventory.processor = this;
+                    busy = false;
+                    nex.inventory.inventorySetup();
+                    nex.equipment.setEquipment();
+                    await Task.Delay(1000);
+                    initPrayer();
+                    tickCounter();
+                    nex.startScript();
+                    break;
+                case "fally":
+                    fally.processor = this;
+                    fally.player = player;
+                    fally.xpDrops = xpDrops;
+                    fally.interfaces = interfaces;
+                    busy = false;
+                    fally.startScript();
                     break;
                 default:
-                    Console.WriteLine("Unkown script");
+                    //Console.WriteLine("Unkown script");
                     break;
             }
             busy = false;
         }
         public void initMouse()
         {
-            for (int i = 0; i < 10000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 prayerClicks[i] = 0;
                 movementClicks[i] = 0;
@@ -485,293 +585,162 @@ namespace Bot.Core
 
         public bool prayerChanged = false;
 
-        public async void click1()
+        public async Task click()
         {
-            if (tempPClicks[0] != 0)
-            {
-                prayerClicks = prayerClicks.Skip(2).ToArray();
-                prayerClicks.Append(0);
-                prayerClicks.Append(0);
-                PressKey((byte)Keys.F3, 1);
-                tabOpen = 3;
-                await Task.Delay(60);
-                Cursor.Position = new Point(clientCoords[0] + tempPClicks[0], clientCoords[1] + tempPClicks[1]);
-                await Task.Delay(100);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, tempPClicks[0], tempPClicks[1], 0, 0);
-                await Task.Delay(50);
-                mouse_event(MOUSEEVENTF_LEFTUP, tempPClicks[0], tempPClicks[1], 0, 0);
-                await Task.Delay(150);
-                prayerClicks = prayerClicks.Skip(2).ToArray();
-                prayerClicks.Append(0);
-                prayerClicks.Append(0);
-                tempPClicks = tempPClicks.Skip(2).ToArray();
-                tempPClicks.Append(0);
-                tempPClicks.Append(0);
-                tickTime -= (30 + 100 + 50 + 150 + 10);
-            }
-            else
-            {
-                if (tempIClicks[0] != 0)
-                {
-                    Console.WriteLine("Has inventory click");
-                    if (tabOpen == 1)
-                    {
-                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                        inventoryClicks.Append(0);
-                        inventoryClicks.Append(0);
-                        Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                        await Task.Delay(50);
-                        mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                        await Task.Delay(30);
-                        mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                        await Task.Delay(30);
-                        tempIClicks = tempIClicks.Skip(2).ToArray();
-                        tempIClicks.Append(0);
-                        tempIClicks.Append(0);
-                        tickTime -= (30 + 10 + 30);
-                    }
-                    else
-                    {
-                        inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                        inventoryClicks.Append(0);
-                        inventoryClicks.Append(0);
-                        PressKey((byte)Keys.F1, 1);
-                        tabOpen = 1;
-                        await Task.Delay(30);
-                        Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                        await Task.Delay(50);
-                        mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                        await Task.Delay(30);
-                        mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                        await Task.Delay(30);
-                        tempIClicks.Append(0);
-                        tempIClicks.Append(0);
-                        tempIClicks = tempIClicks.Skip(2).ToArray();
-                        tickTime -= (30 + 30 + 10 + 30);
-                    }
-                }
-                else if (tempGClicks[0] != 0)
-                {
-                    gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                    gamescreenClicks.Append(0);
-                    gamescreenClicks.Append(0);
-                    Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
-                    await Task.Delay(200);
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
-                    await Task.Delay(40);
-                    mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
-                    await Task.Delay(30);
-                    tempGClicks.Append(0);
-                    tempGClicks.Append(0);
-                    tempGClicks = tempGClicks.Skip(2).ToArray();
-                    tickTime -= (150 + 10 + 30);
-                }
-            }
-            click3();
-        }
-
-        public async void click2()
-        {
-            for (int i = 0; i < 9; i++)
-            {
-                tempGClicks[i] = 0;
-                tempIClicks[i] = 0;
-                tempMClicks[i] = 0;
-                tempPClicks[i] = 0;
-                tempSClicks[i] = 0;
-            }
-            for (int i = 0; i < 9; i++)
-            {
-                tempGClicks[i] = gamescreenClicks[i];
-                tempIClicks[i] = inventoryClicks[i];
-                tempMClicks[i] = movementClicks[i];
-                tempPClicks[i] = prayerClicks[i];
-            }
             busy = true;
-            tickTime = 580;
-            if (tempPClicks[0] != 0)
+            try
             {
-                prayerClicks = prayerClicks.Skip(2).ToArray();
-                prayerClicks.Append(0);
-                prayerClicks.Append(0);
-                tickTime -= (30 + 100 + 50 + 150 + 10);
-                PressKey((byte)Keys.F3, 1);
-                tabOpen = 3;
-                await Task.Delay(60);
-                Cursor.Position = new Point(clientCoords[0] + tempPClicks[0], clientCoords[1] + tempPClicks[1]);
-                await Task.Delay(100);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, tempPClicks[0], tempPClicks[1], 0, 0);
-                await Task.Delay(50);
-                mouse_event(MOUSEEVENTF_LEFTUP, tempPClicks[0], tempPClicks[1], 0, 0);
-                tempPClicks = tempPClicks.Skip(2).ToArray();
-                tempPClicks.Append(0);
-                tempPClicks.Append(0);
-            }
-            else
-            {
-                if (tempMClicks[0] != 0)
+                int tickTime = 550; // Budget for clicks in this cycle
+                bool anyClickPerformed = false;
+
+                // Priority clicks
+                if (tickTime >= 160 && canExecuteClick(prayerClicks))
                 {
-                    movementClicks = movementClicks.Skip(2).ToArray();
-                    movementClicks.Append(0);
-                    movementClicks.Append(0);
-                    tickTime -= (50 + 10 + 100);
-                    Cursor.Position = new Point(clientCoords[0] + tempMClicks[0], clientCoords[1] + tempMClicks[1]);
-                    await Task.Delay(50);
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, tempMClicks[0], tempMClicks[1], 0, 0);
-                    await Task.Delay(10);
-                    mouse_event(MOUSEEVENTF_LEFTUP, tempMClicks[0], tempMClicks[1], 0, 0);
-                    tempMClicks.Append(0);
-                    tempMClicks.Append(0);
-                    tempMClicks = tempMClicks.Skip(2).ToArray();
+                    prayerClicks = await executeClick(prayerClicks, 0, () => PressKey((byte)Keys.F3, 1), tabOpen: 3);
+                    tickTime -= 160;
+                    anyClickPerformed = true;
                 }
-                else
+                if (tickTime >= 160 && canExecuteClick(movementClicks))
                 {
-                    if (tempIClicks[0] != 0)
+                    movementClicks = await executeClick(movementClicks, 0, null, tabOpen: 0);
+                    tickTime -= 100;
+                    anyClickPerformed = true;
+                }
+
+                // Loop for inventory and game screen clicks
+                while (tickTime >= 100)
+                {
+                    bool clickedThisIteration = false;
+
+                    if (canExecuteClick(inventoryClicks))
                     {
-                        skip = true;
-                        if (tabOpen == 1)
-                        {
-                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                            inventoryClicks.Append(0);
-                            inventoryClicks.Append(0);
-                            tickTime -= (30 + 10 + 30);
-                            Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                            await Task.Delay(50);
-                            mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                            await Task.Delay(30);
-                            mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                            tempIClicks.Append(0);
-                            tempIClicks.Append(0);
-                            tempIClicks = tempIClicks.Skip(2).ToArray();
-                        }
-                        else
-                        {
-                            inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                            inventoryClicks.Append(0);
-                            inventoryClicks.Append(0);
-                            tickTime -= (30 + 30 + 10 + 30);
-                            PressKey((byte)Keys.F1, 1);
-                            tabOpen = 1;
-                            await Task.Delay(30);
-                            Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                            await Task.Delay(50);
-                            mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                            await Task.Delay(30);
-                            mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                            tempIClicks.Append(0);
-                            tempIClicks.Append(0);
-                            tempIClicks = tempIClicks.Skip(2).ToArray();
-                        }
+                        inventoryClicks = await executeClick(inventoryClicks, 0, () => PressKey((byte)Keys.F1, 1), tabOpen: 1);
+                        tickTime -= 100;
+                        clickedThisIteration = true;
+                        anyClickPerformed = true;
                     }
-                    else if (tempGClicks[0] != 0)
+                    else if (canExecuteClick(gamescreenClicks))
                     {
-                        gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                        gamescreenClicks.Append(0);
-                        gamescreenClicks.Append(0);
-                        tickTime -= (150 + 10 + 30);
-                        Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
-                        await Task.Delay(200);
-                        mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
-                        await Task.Delay(10);
-                        mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
-                        tempGClicks.Append(0);
-                        tempGClicks.Append(0);
-                        tempGClicks = tempGClicks.Skip(2).ToArray();
+                        gamescreenClicks = await executeClick(gamescreenClicks, 0, null, tabOpen: 0);
+                        tickTime -= 100;
+                        clickedThisIteration = true;
+                        anyClickPerformed = true;
+                    }
+
+                    if (!clickedThisIteration)
+                    {
+                        break;
                     }
                 }
+
+                // Fallback to attack clicks if nothing else was clicked
+                if (!anyClickPerformed && tickTime >= 160 && canExecuteClick(attackClicks))
+                {
+                    attackClicks = await executeClick(attackClicks, 0, () => PressKey((byte)Keys.F4, 1), tabOpen: 4);
+                }
             }
-            click1();
+            finally
+            {
+                busy = false;
+            }
         }
 
-        public async void click3()
+        private async Task<int[]> executeClick(int[] clicks, int startIndex, Action tabAction = null, int tabOpen = 0)
         {
-            if (tempIClicks[0] != 0)
+            if (startIndex >= clicks.Length || clicks.Length < 2 || clicks[startIndex] == 0)
+                return clicks;
+
+            try
             {
-                skip = true;
-                if (tabOpen == 1)
+                int x = clicks[startIndex];
+                int y = clicks[startIndex + 1];
+
+                Console.WriteLine($"Clicking: {x}, {y}");
+                if (tabAction != null)
                 {
-                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                    inventoryClicks.Append(0);
-                    inventoryClicks.Append(0);
-                    tickTime -= (30 + 10 + 30);
-                    Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                    await Task.Delay(50);
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                    await Task.Delay(30);
-                    mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                    tempIClicks.Append(0);
-                    tempIClicks.Append(0);
-                    tempIClicks = tempIClicks.Skip(2).ToArray();
+                    tabAction();
+                    await Task.Delay(100); // Delay after tab switch
+                }
+
+                Cursor.Position = new Point(clientCoords[0] + x, clientCoords[1] + y);
+                if(tabOpen == 1 || tabOpen == 3)
+                {
+                    await Task.Delay(150); // Delay before click
+                } else
+                {
+                    await Task.Delay(150); // Delay before click
+                }
+                mouse_event(MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
+                if (tabOpen == 1 || tabOpen == 3)
+                {
+                    await Task.Delay(50); // Delay before click
                 }
                 else
                 {
-                    inventoryClicks = inventoryClicks.Skip(2).ToArray();
-                    inventoryClicks.Append(0);
-                    inventoryClicks.Append(0);
-                    tickTime -= (30 + 10 + 30);
-                    PressKey((byte)Keys.F1, 1);
-                    tabOpen = 1;
-                    await Task.Delay(30);
-                    tickTime -= 30;
-                    Cursor.Position = new Point(clientCoords[0] + tempIClicks[0], clientCoords[1] + tempIClicks[1]);
-                    await Task.Delay(50);
-                    mouse_event(MOUSEEVENTF_LEFTDOWN, tempIClicks[0], tempIClicks[1], 0, 0);
-                    await Task.Delay(30);
-                    mouse_event(MOUSEEVENTF_LEFTUP, tempIClicks[0], tempIClicks[1], 0, 0);
-                    tempIClicks.Append(0);
-                    tempIClicks.Append(0);
-                    tempIClicks = tempIClicks.Skip(2).ToArray();
+                    await Task.Delay(50); // Delay before click
                 }
+                mouse_event(MOUSEEVENTF_LEFTUP, x, y, 0, 0);
+
+                return clicks.Skip(2).Concat(new int[] { 0, 0 }).ToArray();
             }
-            else if (tempGClicks[0] != 0)
+            catch (Exception ex)
             {
-                gamescreenClicks = gamescreenClicks.Skip(2).ToArray();
-                gamescreenClicks.Append(0);
-                gamescreenClicks.Append(0);
-                tickTime -= (150 + 10 + 30);
-                Cursor.Position = new Point(clientCoords[0] + tempGClicks[0], clientCoords[1] + tempGClicks[1]);
-                await Task.Delay(200);
-                mouse_event(MOUSEEVENTF_LEFTDOWN, tempGClicks[0], tempGClicks[1], 0, 0);
-                await Task.Delay(10);
-                mouse_event(MOUSEEVENTF_LEFTUP, tempGClicks[0], tempGClicks[1], 0, 0);
-                tempGClicks.Append(0);
-                tempGClicks.Append(0);
-                tempGClicks = tempGClicks.Skip(2).ToArray();
+                Console.WriteLine($"Click execution failed: {ex.Message}");
+                return clicks;
             }
-            busy = false;
+        }
+
+        private bool canExecuteClick(int[] clicks)
+        {
+            // Check if there are any meaningful clicks left in the array
+            return clicks != null && clicks.Length >= 2 && clicks[0] != 0;
         }
 
         public int tickTime = 560;
 
-        public async void mouseClickLoop()
+        private async void mouseClickLoop()
         {
-            click2();
-            if (tick1())
+            while (true)
             {
-                //Console.WriteLine("Waiting for tick2 now");
-                while (tick1())
+                await click();
+                if (tick1())
                 {
-                    await Task.Delay(10);
+                    while (tick1())
+                    {
+                        await Task.Delay(10);
+                    }
+                }
+                else if (tick2())
+                {
+                    while (tick2())
+                    {
+                        await Task.Delay(10);
+                    }
                 }
             }
-            else if (tick2())
-            {
-                //Console.WriteLine("Waiting for tick1 now");
-                while (tick2())
-                {
-                    await Task.Delay(10);
-                }
-            }
-            mouseClickLoop();
         }
 
-        public void PressKey(byte key, int duration)
+        public bool holdingShift = false;
+        public class ShiftHolder : IDisposable
+        {
+            public ShiftHolder()
+            {
+                keybd_event((byte)Keys.ShiftKey, 0, KEY_DOWN_EVENT, 0);
+            }
+
+            public void Dispose()
+            {
+                keybd_event((byte)Keys.ShiftKey, 0, KEY_UP_EVENT, 0);
+            }
+        }
+
+        public async void PressKey(byte key, int duration)
         {
             int totalDuration = 0;
             while (totalDuration < duration)
             {
                 keybd_event(key, 0, KEY_DOWN_EVENT, 0);
-                System.Threading.Thread.Sleep(10);
+                await Task.Delay(10);
                 keybd_event(key, 0, KEY_UP_EVENT, 0);
                 totalDuration += 1;
             }
@@ -825,6 +794,17 @@ namespace Bot.Core
                         }
                     }
                     break;
+                case "attack":
+                    for (int i = 0; i < attackClicks.Length; i++)
+                    {
+                        if (attackClicks[i] == 0)
+                        {
+                            attackClicks[i] = x;
+                            attackClicks[i + 1] = y;
+                            return;
+                        }
+                    }
+                    break;
 
             }
         }
@@ -857,7 +837,7 @@ namespace Bot.Core
         {
             if (inventory.hasItem("Full ess"))
             {
-                Console.WriteLine("Full inventory");
+                //Console.WriteLine("Full inventory");
             }
             await Task.Delay(100);
             repeat();
@@ -887,12 +867,12 @@ namespace Bot.Core
 
         public async void printMap()
         {
-            Console.Clear();
+            //Console.Clear();
         }
 
         public async void printStats()
         {
-            Console.Clear();
+            //Console.Clear();
         }
 
         public async void rightClick(int x, int y)
@@ -989,7 +969,7 @@ namespace Bot.Core
                         }
                     }
                 }
-                Console.WriteLine("Cannot find client");
+                //Console.WriteLine("Cannot find client");
 
             }
         }

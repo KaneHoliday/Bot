@@ -5,7 +5,7 @@
     <version>1.0.0</version>
     <authors>Bot</authors>
     <description>Package Description</description>
-    <repository type="git" />
+    <repository type="git" commit="747dbd476a0d00e00263272d93c9b9070aecab0b" />
     <dependencies>
       <group targetFramework="net6.0-windows7.0">
         <dependency id="System.Drawing.Common" version="8.0.7" exclude="Build,Analyzers" />

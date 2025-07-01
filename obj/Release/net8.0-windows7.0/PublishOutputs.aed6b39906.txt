@@ -1,0 +1,8 @@
+C:\Users\Kane\Desktop\Bot latest Version\Bot.exe
+C:\Users\Kane\Desktop\Bot latest Version\Bot.dll
+C:\Users\Kane\Desktop\Bot latest Version\Bot.deps.json
+C:\Users\Kane\Desktop\Bot latest Version\Bot.runtimeconfig.json
+C:\Users\Kane\Desktop\Bot latest Version\Bot.pdb
+C:\Users\Kane\Desktop\Bot latest Version\System.Drawing.Common.dll
+C:\Users\Kane\Desktop\Bot latest Version\System.Reactive.dll
+C:\Users\Kane\Desktop\Bot latest Version\System.Reactive.Windows.Forms.dll

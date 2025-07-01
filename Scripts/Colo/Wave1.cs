@@ -1,16 +1,21 @@
-﻿using Bot.Core;
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               using Bot.Core;
 using Microsoft.VisualBasic.Devices;
 using System;
 using System.Collections.Generic;
 using System.DirectoryServices.ActiveDirectory;
+using System.Drawing.Imaging;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Bot.Scripts.Colo
 {
     internal class Wave1
     {
+
+        //camera zoom = 244/896
+
         public Wave2 wave2;
 
         public Interfaces interfaces;
@@ -50,6 +55,9 @@ namespace Bot.Scripts.Colo
         public int chestPosX = 0;
         public int chestPosY = 0;
 
+        public int bankPosX = 0;
+        public int bankPosY = 0;
+
         public int[] waveTimes = new int[1000];
 
         public void loadTimes()
@@ -63,125 +71,131 @@ namespace Bot.Scripts.Colo
             waveTimes = numberStrings.Select(int.Parse).ToArray();
         }
 
-        public async void startTime()
+        private DateTime startTime;
+        private CancellationTokenSource cancellationTokenSource;
+
+        public async Task StartTimerAsync()
         {
-            await Task.Delay(1000);
-            seconds++;
-            if (seconds > 59)
+            startTime = DateTime.Now;
+            cancellationTokenSource = new CancellationTokenSource();
+            var token = cancellationTokenSource.Token;
+
+            while (!token.IsCancellationRequested)
             {
-                seconds = 0;
-                minutes++;
+                await Task.Delay(1000, token);
+
+                var elapsed = DateTime.Now - startTime;
+                hours = (int)elapsed.TotalHours;
+                minutes = elapsed.Minutes;
+                seconds = elapsed.Seconds;
             }
-            if (minutes > 59)
-            {
-                minutes = 0;
-                hours++;
-            }
-            startTime();
         }
 
-        public async void updateConsole()
+        public void StopTimer()
         {
+            cancellationTokenSource?.Cancel();
+        }
+
+        public async void dataLoop()
+        {
+            while(!atMiddlePilar())
+            {
+                await Task.Delay(100);
+            }
+            Console.WriteLine("At middle pillar.");
+            //captureScreen();
+            claims++;
+            while(!leaveInterface())
+            {
+                await Task.Delay(100);
+            }
+            Console.WriteLine("At leave interface.");
+            dataLoop();
+        }
+
+        private CancellationTokenSource updateConsoleCts;
+
+        public async Task StartConsoleUpdateAsync()
+        {
+            updateConsoleCts = new CancellationTokenSource();
+            var token = updateConsoleCts.Token;
+
+            while (!token.IsCancellationRequested)
+            {
+                UpdateConsole();
+
+                // Wait for processor ticks to complete
+                await WaitForProcessorTicks();
+
+                await Task.Delay(1200, token);
+            }
+        }
+
+        private void UpdateConsole()
+        {
+            // Use string formatting instead of complex if statements
+            var timeString = $"{hours:D1}:{minutes:D2}:{seconds:D2}";
+
+            // Build the entire output first, then write it once
+            var output = new StringBuilder();
+            output.AppendLine($"Time running: {timeString}");
+            output.AppendLine($"Waves claimed: {claims}");
+            output.AppendLine($"Profit Made: {claims * 40000:N0}"); // Format with thousands separator
+            output.AppendLine($"Melee skips: {meleeSkips}");
+
+            // Clear and write in one go
             Console.Clear();
-            if (seconds < 10)
+            Console.Write(output.ToString());
+        }
+
+        private async Task WaitForProcessorTicks()
+        {
+            // Combine tick1 and tick2 logic to avoid code duplication
+            while (processor.tick1() || processor.tick2())
             {
-                if (minutes < 10)
-                {
-                    Console.WriteLine("Time running: " + hours.ToString() + ":0" + minutes.ToString() + ":0" + seconds.ToString());
-                } else
-                {
-                    Console.WriteLine("Time running: " + hours.ToString() + ":" + minutes.ToString() + ":0" + seconds.ToString());
-                }
+                await Task.Delay(100);
             }
-            if (seconds > 9)
-            {
-                if (minutes < 10)
-                {
-                    Console.WriteLine("Time running: " + hours.ToString() + ":0" + minutes.ToString() + ":" + seconds.ToString());
-                }
-                else
-                {
-                    Console.WriteLine("Time running: " + hours.ToString() + ":" + minutes.ToString() + ":" + seconds.ToString());
-                }
-            }
-            Console.WriteLine("Waves claimed: " + claims.ToString());
-            //Console.WriteLine("Xp gained: " + xpGained.ToString());
-            Console.WriteLine("Profit Made: " + (claims * 40000).ToString());
-            Console.WriteLine("Melee skips: " + meleeSkips.ToString());
-            if(processor.tick1())
-            {
-                while(processor.tick1())
-                {
-                    await Task.Delay(100);
-                }
-            }
-            else if (processor.tick2())
-            {
-                while (processor.tick2())
-                {
-                    await Task.Delay(100);
-                }
-            }
-            updateConsole();
+        }
+
+        public void StopConsoleUpdate()
+        {
+            updateConsoleCts?.Cancel();
         }
 
         public async void startScript()
         {
+            prayer.boostPrayer = 0;
+            prayer.activePrayer = 0;
+            Console.WriteLine("Starting script");
             if (firstRun)
             {
                 loadTimes();
-                checkLoop();
+                CheckLoopAsync();
                 magePosLoop();
-                startTime();
-                updateConsole();
+                StartTimerAsync();
+                UpdateConsole();
                 firstRun = false;
             }
-            if(atMiddleTile())
+            if (atMiddleTile())
             {
-                processor.addMouseClick(229, 165, "movement");
+                await Task.Delay(600);
+                processor.addMouseClick(220, 164, "movement");
                 while (!popup)
                 {
                     await Task.Delay(100);
                 }
-                Console.WriteLine("Popup past");
                 await Task.Delay(200);
-                processor.addMouseClick(339, 281, "gamescreen"); //click on the invocation
+                processor.addMouseClick(339, 281, "prayer"); //click on the invocation
                 await Task.Delay(200);
-                processor.addMouseClick(435, 294, "gamescreen"); //accept the wave
-                while (popup)
-                {
-                    await Task.Delay(10);
-                }
-                processor.addMouseClick(627, 119, "movement");
+                processor.addMouseClick(435, 294, "prayer"); //accept the wave
                 await Task.Delay(200);
-                for (int i = 0; i < processor.inventory.inventory.Length; i++)
-                {
-                    if (processor.inventory.inventory[i] == "ranging potion (1)")
-                    {
-                        inventory.clickItem2("ranging potion (1)", 98);
-                        break;
-                    }
-                    else if (processor.inventory.inventory[i] == "ranging potion (2)")
-                    {
-                        inventory.clickItem2("ranging potion (2)", 98);
-                        break;
-                    }
-                    else if (processor.inventory.inventory[i] == "ranging potion (3)")
-                    {
-                        inventory.clickItem2("ranging potion (3)", 98);
-                        break;
-                    }
-                    else if (processor.inventory.inventory[i] == "ranging potion (4)")
-                    {
-                        inventory.clickItem2("ranging potion (4)", 98);
-                        break;
-                    }
-                }
-                inventory.clickItem2("saturated heart", 99);
+                processor.addMouseClick(599, 113, "prayer");
+                await Task.Delay(200);
+                //inventory.clickItem2("saturated heart", 99);
                 //equipMagicFrem();
                 waitForStartLocation();
             }
-            else if(atMiddleTile())
+            else if (atMiddleTile())
             {
                 waitForStartLocation();
             }
@@ -189,28 +203,48 @@ namespace Bot.Scripts.Colo
 
         public async void waitForStartLocation()
         {
-            prayer.solidMagic();
-            while(!atStartTile())
+            while(atMiddleTile())
             {
                 await Task.Delay(100);
             }
-            await Task.Delay(600);
-            processor.addMouseClick(172, 154, "gamescreen"); //move to the safespot
+            for (int i = 0; i < processor.inventory.inventory.Length; i++)
+            {
+                if (processor.inventory.inventory[i] == "ranging potion (1)")
+                {
+                    inventory.clickItem2("ranging potion (1)", 98);
+                    break;
+                }
+                else if (processor.inventory.inventory[i] == "ranging potion (2)")
+                {
+                    inventory.clickItem2("ranging potion (2)", 98);
+                    break;
+                }
+                else if (processor.inventory.inventory[i] == "ranging potion (3)")
+                {
+                    inventory.clickItem2("ranging potion (3)", 98);
+                    break;
+                }
+                else if (processor.inventory.inventory[i] == "ranging potion (4)")
+                {
+                    inventory.clickItem2("ranging potion (4)", 98);
+                    break;
+                }
+            }
+            prayer.solidMagic();
             if (waveTicks > 100)
             {
                 saveTimes();
                 waveTimes[claims - 1] = waveTicks;
                 waveTicks = 0;
             }
-            await Task.Delay(1200);
-            if (meleeFrem)
+            await Task.Delay(600);
+            equipMagicFrem();
+            while (!atMiddlePilar())
             {
-                while (meleeFrem)
-                {
-                    await Task.Delay(100);
-                }
+                await Task.Delay(100);
             }
             //rightClickMeleeFrem();
+            //captureScreen();
             killFrems();
         }
 
@@ -222,23 +256,22 @@ namespace Bot.Scripts.Colo
 
             File.WriteAllText(filePath, content);
 
-            Console.WriteLine("Array has been written to the file.");
         }
 
         public async void setFremPrayers()
         {
-                if (fremsCleared < 1)
-                {
-                    prayer.solidMelee();
-                }
-                if (fremsCleared < 2)
-                {
-                    prayer.solidRange();
-                }
-                if (fremsCleared < 3)
-                {
-                    prayer.solidMagic();
-                }
+            if (fremsCleared < 1)
+            {
+                prayer.solidMelee();
+            }
+            if (fremsCleared < 2)
+            {
+                prayer.solidRange();
+            }
+            if (fremsCleared < 3)
+            {
+                prayer.solidMagic();
+            }
         }
 
         public async void rightClickMeleeFrem()
@@ -320,18 +353,36 @@ namespace Bot.Scripts.Colo
         public int xpDropCount = 0;
 
         public bool meleeFrem = false;
+        public bool mageFrem = false;
         public bool xpDrop = false;
         public bool fremDead = false;
         public bool popup = false;
 
-        public async void checkLoop()
+        public int m1 = 0;
+        public int m2 = 0;
+        public int m3 = 0;
+        public int m4 = 0;
+        public int m5 = 0;
+        public int m6 = 0;
+        public int m7 = 0;
+        public int m8 = 0;
+        public int m9 = 10;
+        public int m10 = 0;
+        public int m11 = 0;
+
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+
+        public async Task CheckLoopAsync()
         {
-            meleeFremCheck();
-            xpDropCheck();
-            fremDeadCheck();
-            popupCheck();
-            await Task.Delay(20);
-            checkLoop();
+            while (!_cancellationTokenSource.Token.IsCancellationRequested)
+            {
+                meleeFremCheck();
+                mageFremCheck();
+                xpDropCheck();
+                fremDeadCheck();
+                popupCheck();
+                await Task.Delay(20, _cancellationTokenSource.Token);
+            }
         }
 
         public bool moveSkip = false;
@@ -341,15 +392,15 @@ namespace Bot.Scripts.Colo
             xpDropCount = 0;
             while (!meleeFrem)
             {
-                await Task.Delay(20);
+                await Task.Delay(10);
             }
-            processor.addMouseClick(240, 166, "gamescreen");
+            processor.addMouseClick(238, 167, "attack");
             while (xpDropCount < 2)
             {
                 setFremPrayers();
                 while (!xpDrop)
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(10);
                 }
                 if ((xpDropCount + 1) >= 2)
                 {
@@ -358,80 +409,240 @@ namespace Bot.Scripts.Colo
                 }
                 while (xpDrop)
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(10);
                 }
                 xpDropCount++;
+            }
+            while (xpDrop)
+            {
+                await Task.Delay(10);
             }
             xpDropCount = 0;
             fremsCleared++;
             equipMeleeFrem();
-            await Task.Delay(100);
-            while (xpDrop)
-            {
-                await Task.Delay(100);
-            }
             prayer.prayPiety(); //turn on piety
-            await Task.Delay(300);
+            while(!canSpec())
+            {
+                await Task.Delay(10);
+            }
             processor.addMouseClick(584, 145, "gamescreen"); //special on
-            await Task.Delay(300);
-            while (xpDrop)
+            await Task.Delay(10);
+            processor.addMouseClick(257, 186, "attack"); //attack ranger
+            while (!xpDrop)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
-            processor.addMouseClick(256, 178, "gamescreen"); //attack ranger
-            while(!xpDrop)
-            {
-                await Task.Delay(100);
-            }
-            Console.Write("See xp drop");
-            prayer.prayPiety(); //turn off piety
+            //summonThrall(); only enable if doing wave 2 too.
             xpDropCount = 0;
             fremsCleared++;
-            player.updateHealth();
-            await Task.Delay(100);
-            prayer.solidMagic();
-            await Task.Delay(500);
-            equipRangeFrem(); //has ven bow as weapon
-            await Task.Delay(300);
             while (xpDrop)
             {
-                await Task.Delay(100);
+                await Task.Delay(10);
             }
-            if (magePos == 4)
+            if (magePos == 1 || magePos == 6)
             {
-                prayer.prayRigour();
+                await Task.Delay(10);
+                processor.addMouseClick(225, 151, "movement");
+                await Task.Delay(10);
+                equipRangeFrem(); //has ven bow as weapon
+                while (magePos != 7)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(293, 184, "movement");
+                while (magePos != 4)
+                {
+                    await Task.Delay(10);
+                }
                 await Task.Delay(300);
-                processor.addMouseClick(284, 165);
-                while (xpDropCount < 4) //minimum 4 attacks to kill mager frem
+                processor.addMouseClick(298, 167, "attack");
+                await Task.Delay(10);
+                prayer.prayRigour();
+                while (xpDropCount < 3 || mageFrem) //minimum 3 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    int check = 0;
+                    while (!xpDrop || mageFrem)
+                    {
+                        await Task.Delay(100);
+                        check++;
+                        if (check > 20)
+                        {
+                            break;
+                        }
+                    }
+                    if ((xpDropCount + 1) >= 3)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop || mageFrem)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                xpDropCount = 0;
+                solveWave(4);
+            }
+            else if (magePos == 2)
+            {
+                processor.addMouseClick(290, 140, "movement");
+                await Task.Delay(10);
+                equipRangeFrem(); //has ven bow as weapon
+                while (magePos != 9)
+                {
+                    await Task.Delay(10);
+                }
+                await Task.Delay(100);
+                processor.addMouseClick(256, 121, "attack");
+                await Task.Delay(10);
+                prayer.prayRigour();
+                while (xpDropCount < 3) //minimum 3 attacks to kill mager frem
                 {
                     setFremPrayers();
                     while (!xpDrop)
                     {
                         await Task.Delay(100);
                     }
-                    if ((xpDropCount + 1) >= 4)
+                    if ((xpDropCount + 1) >= 3)
                     {
                         xpDropCount++;
                         break;
                     }
                     while (xpDrop)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(10);
                     }
                     xpDropCount++;
                 }
                 equipLongRangeWeapon();
-                await Task.Delay(600);
+                await Task.Delay(10);
+                xpDropCount = 0;
+                solveWave(9);
             }
-            else
+            else if (magePos == 3)
             {
-                processor.addMouseClick(270, 165, "gamescreen"); //attack mager
+                processor.addMouseClick(225, 151, "movement");
+                await Task.Delay(10);
+                equipRangeFrem(); //has ven bow as weapon
+                while (magePos != 7)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(293, 184, "movement");
+                while (magePos != 4)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(298, 167, "attack");
+                await Task.Delay(10);
+                prayer.prayRigour();
+                while (xpDropCount < 3 || mageFrem) //minimum 3 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    while (!xpDrop || mageFrem)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if ((xpDropCount + 1) >= 3)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop || mageFrem)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                xpDropCount = 0;
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(4);
+            }
+            else if (magePos == 4)
+            {
+                equipRangeFrem(); //has ven bow as weapon
+                await Task.Delay(10);
+                processor.addMouseClick(298, 167, "attack");
+                await Task.Delay(10);
+                prayer.prayRigour();
+                while (xpDropCount < 3 || mageFrem) //minimum 3 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    while (!xpDrop || mageFrem)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if ((xpDropCount + 1) >= 3)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop || mageFrem)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                xpDropCount = 0;
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(4);
+            }
+            else if (magePos == 10)
+            {
+                processor.addMouseClick(225, 151, "movement");
+                await Task.Delay(10);
+                equipRangeFrem(); //has ven bow as weapon
+                while (magePos != 7)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(293, 184, "movement");
+                while (magePos != 4)
+                {
+                    await Task.Delay(10);
+                }
+                processor.addMouseClick(298, 167, "attack");
+                prayer.prayRigour();
+                while (xpDropCount < 3 || mageFrem) //minimum 3 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    while (!xpDrop || mageFrem)
+                    {
+                        await Task.Delay(10);
+                    }
+                    if ((xpDropCount + 1) >= 3)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop || mageFrem)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                xpDropCount = 0;
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(4);
+            }
+            else if (magePos == 11)
+            {
+                equipRangeFrem();
+                processor.addMouseClick(276, 169, "attack");
+                prayer.prayRigour();
                 while (xpDropCount < 2) //minimum 3 attacks to kill mager frem
                 {
                     setFremPrayers();
                     while (!xpDrop)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(10);
                     }
                     if ((xpDropCount + 1) >= 2)
                     {
@@ -440,23 +651,74 @@ namespace Bot.Scripts.Colo
                     }
                     while (xpDrop)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(10);
                     }
                     xpDropCount++;
                 }
-                while (!fremDead)
-                {
-                    await Task.Delay(100);
-                }
+                await Task.Delay(10);
                 xpDropCount = 0;
-                Console.WriteLine("Frems dead");
-                if (magePos != 2)
-                {
-                    equipLongRangeWeapon();
-                }
-                await Task.Delay(500);
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(6);
             }
-            solveWave();
+            else if (magePos == 8)
+            {
+                equipRangeFrem();
+                processor.addMouseClick(276, 169, "attack");
+                prayer.prayRigour();
+                while (xpDropCount < 2) //minimum 2 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    while (!xpDrop)
+                    {
+                        await Task.Delay(10);
+                    }
+                    if ((xpDropCount + 1) >= 2)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                await Task.Delay(10);
+                xpDropCount = 0;
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(8);
+            }
+            else
+            {
+                equipRangeFrem();
+                processor.addMouseClick(350, 153, "attack");  //fix this
+                prayer.prayRigour();
+                while (xpDropCount < 2) //minimum 2 attacks to kill mager frem
+                {
+                    setFremPrayers();
+                    while (!xpDrop)
+                    {
+                        await Task.Delay(10);
+                    }
+                    if ((xpDropCount + 1) >= 2)
+                    {
+                        xpDropCount++;
+                        break;
+                    }
+                    while (xpDrop)
+                    {
+                        await Task.Delay(10);
+                    }
+                    xpDropCount++;
+                }
+                await Task.Delay(10);
+                xpDropCount = 0;
+                equipLongRangeWeapon();
+                await Task.Delay(10);
+                solveWave(5);
+            }
         }
         public bool xpDropCheck()
         {
@@ -469,7 +731,8 @@ namespace Bot.Scripts.Colo
             {
                 xpDrop = true;
                 return true;
-            } else
+            }
+            else
             {
                 xpDrop = false;
                 return false;
@@ -485,55 +748,54 @@ namespace Bot.Scripts.Colo
             magePosLoop();
         }
 
-        public async void solveWave()
+        public async void solveWave(int mageposition)
         {
-            switch(magePos)
+            if(mageposition == 0)
+            {
+                mageposition = magePos;
+            }
+            switch (mageposition)
             {
                 case 1:
-                    prayer.prayRigour();
-                    processor.addMouseClick(244, 167, "gamescreen");
+                    Console.WriteLine("Mage pos 1");
+                    processor.addMouseClick(244, 167, "movement");
                     while (magePos == 1)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(10);
                     }
                     while (magePos != 6)
                     {
-                        await Task.Delay(100);
+                        await Task.Delay(10);
                     }
-                    processor.addMouseClick(349, 151, "gamescreen");
+                    processor.addMouseClick(349, 151, "attack");
                     while (magerOnMap())
                     {
+                        await Task.Delay(10);
+                    }
+                    processor.addMouseClick(268, 168, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
+                    {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(268, 168, "gamescreen");
                     await Task.Delay(600);
-                    equipMagic();
-                    if (prayer.activePrayer == 1)
+                    while (!meleeNorth() && !meleeWest() && !popup)
                     {
-                        prayer.turnOff();
-                    }
-                    await Task.Delay(600);
-                    prayer.prayRigour(); // turn rigour off
-                    while(!meleeNorth() && !meleeWest() && !popup) {
                         await Task.Delay(100);
                     }
                     if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
                     }
                     else
                     {
-                        while(!(meleeNorth() || meleeWest()))
+                        while (!(meleeNorth() || meleeWest()))
                         {
                             await Task.Delay(100);
                         }
                         if (meleeNorth())
                         {
-                            processor.addMouseClick(254, 116, "gamescreen");
+                            processor.addMouseClick(248, 92, "attack");
                             while (meleeNorth())
                             {
                                 await Task.Delay(100);
@@ -541,7 +803,7 @@ namespace Bot.Scripts.Colo
                         }
                         else if (meleeWest())
                         {
-                            processor.addMouseClick(194, 156, "gamescreen");
+                            processor.addMouseClick(178, 157, "attack");
                             while (meleeWest())
                             {
                                 await Task.Delay(100);
@@ -552,54 +814,34 @@ namespace Bot.Scripts.Colo
                         {
                             await Task.Delay(100);
                         }
-                        processor.addMouseClick(653, 38, "gamescreen");
-                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(653, 38, "movement");
                     }
+                    Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
-                    finishWave();
-                    return;
+                    m1++;
+                    break;
                 case 2:
-                    prayer.prayRigour();
-                    await Task.Delay(300);
-                    equipDPSRangeWeapon();
-                    if (!moveSkip)
-                    {
-                        processor.addMouseClick(646, 80, "gamescreen"); //move 2 squares right, north?
-                        await Task.Delay(100);
-                        while (magePos == 2)
-                        {
-                            await Task.Delay(100);
-                        }
-                        while (magePos != 2)
-                        {
-                            await Task.Delay(100);
-                        }
-                    }
-                    moveSkip = false;
-                    processor.addMouseClick(256, 121, "gamescreen");
+                    Console.WriteLine("Mage pos 2");
+                    processor.addMouseClick(257, 128, "attack");
                     while (magerOnMap())
                     {
                         await Task.Delay(100);
                     }
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour(); //rigour off
+                    //Console.WriteLine("At corner tile");
                     while (!meleeNorth() && !meleeWest() && !popup)
                     {
                         await Task.Delay(100);
                     }
+                    //Console.WriteLine("See melee north, west, or popup.");
                     if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
                     }
                     else
                     {
@@ -609,51 +851,56 @@ namespace Bot.Scripts.Colo
                         }
                         if (meleeNorth())
                         {
-                            processor.addMouseClick(250, 109, "gamescreen");
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         else if (meleeWest())
                         {
-                            processor.addMouseClick(204, 167, "gamescreen");
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
-                        Console.WriteLine("Melee dead, wave done.");
-                        processor.addMouseClick(653, 38, "gamescreen");
+                        processor.addMouseClick(653, 38, "movement");
                     }
+                    Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
-                    finishWave();
-                    return;
+                    m2++;
+                    break;
                 case 3:
-                    prayer.prayRigour();
-                    Console.WriteLine("mager pos 3");
-                    processor.addMouseClick(232, 157, "gamescreen");
+                    Console.WriteLine("Mage pos 3");
+                    //Console.WriteLine("mager pos 3");
+                    processor.addMouseClick(232, 157, "movement");
                     while (magePos != 7)
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(282, 180, "gamescreen");
+                    processor.addMouseClick(282, 180, "movement");
                     while (magePos != 4)
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(284, 165);
+                    processor.addMouseClick(290, 165, "attack");
                     while (magerOnMap())
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(646, 80, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
+                    processor.addMouseClick(646, 80, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour(); //rigour off
                     while (!meleeNorth() && !meleeWest() && !popup)
                     {
                         await Task.Delay(100);
@@ -661,11 +908,7 @@ namespace Bot.Scripts.Colo
                     if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
-                        Console.WriteLine("mager dead, melee skipped");
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
+                        //Console.WriteLine("mager dead, melee skipped");
                     }
                     else
                     {
@@ -675,40 +918,48 @@ namespace Bot.Scripts.Colo
                         }
                         if (meleeNorth())
                         {
-                            processor.addMouseClick(250, 109, "gamescreen");
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         else if (meleeWest())
                         {
-                            processor.addMouseClick(204, 167, "gamescreen");
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
-                        processor.addMouseClick(653, 38, "gamescreen");
-                        Console.WriteLine("Melee dead, wave done.");
+                        processor.addMouseClick(653, 38, "movement");
+                        prayer.boostPrayer = 0;
                     }
+                    Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
-                    Console.Beep();
-                    finishWave();
-                    return;
+                    //Console.Beep();
+                    break;
+                    m3++;
                 case 4:
-                    processor.addMouseClick(284, 165);
+                    Console.WriteLine("Mage pos 4");
+                    processor.addMouseClick(298, 167, "attack");
                     while (magePos == 4)
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(281, 168, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    if (prayer.activePrayer == 1)
+                    await Task.Delay(300);
+                    processor.addMouseClick(298, 167, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
                     await Task.Delay(600);
-                    prayer.prayRigour();
                     while (!meleeNorth() && !meleeWest() && !popup)
                     {
                         await Task.Delay(100);
@@ -716,10 +967,6 @@ namespace Bot.Scripts.Colo
                     if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
                     }
                     else
                     {
@@ -729,48 +976,206 @@ namespace Bot.Scripts.Colo
                         }
                         if (meleeNorth())
                         {
-                            processor.addMouseClick(250, 109, "gamescreen");
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         else if (meleeWest())
                         {
-                            processor.addMouseClick(204, 167, "gamescreen");
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
-                        processor.addMouseClick(653, 38, "gamescreen");
+                        processor.addMouseClick(653, 38, "movement");
+                    }
+                    Console.WriteLine("Melee dead, wave done.");
+                    //Console.WriteLine("Melee dead, wave done.");
+                    waveComplete = true;
+                    m4++;
+                    break;
+                case 5:
+                    Console.WriteLine("Mage pos 8");
+                    processor.addMouseClick(320, 208, "attack");
+                    while(magerOnMap())
+                    {
+                        await Task.Delay(10);
+                    }
+                    await Task.Delay(300);
+                    processor.addMouseClick(298, 167, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
+                    {
+                        await Task.Delay(100);
+                    }
+                    await Task.Delay(600);
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (!meleeOnMap() || popup)
+                    {
+                        meleeSkips++;
+                    }
+                    else
+                    {
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        processor.addMouseClick(653, 38, "movement");
                     }
                     Console.WriteLine("Melee dead, wave done.");
                     waveComplete = true;
-                    finishWave();
-                    return;
-                default:
-                    prayer.prayRigour();
-                    processor.addMouseClick(232, 157, "gamescreen");
-                    while (magePos != 7)
+                    m5++;
+                    break;
+                case 6:
+                    Console.WriteLine("Mage pos 6");
+                    processor.addMouseClick(316, 156, "attack");
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(10);
+                    }
+                    prayer.activePrayer = 0;
+                    while (!meleeNorth() && !meleeWest() && !popup)
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(282, 180, "gamescreen");
-                    while (magePos != 4)
+                    if (!meleeOnMap() || popup)
+                    {
+                        meleeSkips++;
+                    }
+                    else
+                    {
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        processor.addMouseClick(653, 38, "movement");
+                    }
+                    Console.WriteLine("Melee dead, wave done.");
+                    waveComplete = true;
+                    m5++;
+                    break;
+                case 8:
+                    Console.WriteLine("Mage pos 8");
+                    processor.addMouseClick(339, 218, "attack");
+                    while (magePos == 8)
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(284, 165);
+                    await Task.Delay(300);
+                    processor.addMouseClick(298, 167, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
+                    {
+                        await Task.Delay(100);
+                    }
+                    await Task.Delay(600);
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (!meleeOnMap() || popup)
+                    {
+                        meleeSkips++;
+                    }
+                    else
+                    {
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        processor.addMouseClick(653, 38, "movement");
+                    }
+                    Console.WriteLine("Melee dead, wave done.");
+                    waveComplete = true;
+                    m8++;
+                    break;
+                case 9:
+                    Console.WriteLine("Mage pos 9");
+                    await Task.Delay(100);
+                    processor.addMouseClick(256, 121, "attack");
                     while (magerOnMap())
                     {
                         await Task.Delay(100);
                     }
-                    processor.addMouseClick(646, 80, "gamescreen");
-                    await Task.Delay(600);
-                    equipMagic();
-                    await Task.Delay(600);
-                    prayer.prayRigour();
-                    if (prayer.activePrayer == 1)
+                    processor.addMouseClick(256, 203, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
                     {
-                        prayer.turnOff();
+                        await Task.Delay(100);
                     }
                     await Task.Delay(600);
                     while (!meleeNorth() && !meleeWest() && !popup)
@@ -780,11 +1185,6 @@ namespace Bot.Scripts.Colo
                     if (!meleeOnMap() || popup)
                     {
                         meleeSkips++;
-                        Console.WriteLine("Melee dead, wave done.");
-                        if (prayer.activePrayer == 1)
-                        {
-                            prayer.turnOff();
-                        }
                     }
                     else
                     {
@@ -794,24 +1194,155 @@ namespace Bot.Scripts.Colo
                         }
                         if (meleeNorth())
                         {
-                            processor.addMouseClick(250, 109, "gamescreen");
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         else if (meleeWest())
                         {
-                            processor.addMouseClick(204, 167, "gamescreen");
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
                         }
                         await Task.Delay(2000);
                         while (meleeNorth() || meleeWest())
                         {
                             await Task.Delay(100);
                         }
-                        processor.addMouseClick(653, 38, "gamescreen");
+                        processor.addMouseClick(653, 38, "movement");
                     }
-                    Console.WriteLine("Melee dead, wave done.");
-                    waveComplete = true;
-                    finishWave();
-                    return;
+                    break;
+                case 10:
+                    processor.addMouseClick(290, 165, "attack");
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(646, 80, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
+                    {
+                        await Task.Delay(100);
+                    }
+                    await Task.Delay(600);
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (!meleeOnMap() || popup)
+                    {
+                        meleeSkips++;
+                        //Console.WriteLine("Melee dead, wave done.");
+                    }
+                    else
+                    {
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        processor.addMouseClick(653, 38, "movement");
+                    }
+                    m10++;
+                    break;
+                default:
+                    await Task.Delay(400);
+                    processor.addMouseClick(232, 157, "movement");
+                    while (magePos != 7)
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(282, 180, "movement");
+                    while (magePos != 4)
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(284, 165, "attack");
+                    while (magerOnMap())
+                    {
+                        await Task.Delay(100);
+                    }
+                    processor.addMouseClick(646, 80, "movement");
+                    prayer.activePrayer = 0;
+                    while (!atCornerTile())
+                    {
+                        await Task.Delay(100);
+                    }
+                    await Task.Delay(600);
+                    while (!meleeNorth() && !meleeWest() && !popup)
+                    {
+                        await Task.Delay(100);
+                    }
+                    if (!meleeOnMap() || popup)
+                    {
+                        meleeSkips++;
+                        //Console.WriteLine("Melee dead, wave done.");
+                    }
+                    else
+                    {
+                        while (!(meleeNorth() || meleeWest()))
+                        {
+                            await Task.Delay(100);
+                        }
+                        if (meleeNorth())
+                        {
+                            processor.addMouseClick(248, 92, "attack");
+                            while (meleeNorth())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        else if (meleeWest())
+                        {
+                            processor.addMouseClick(178, 157, "attack");
+                            while (meleeWest())
+                            {
+                                await Task.Delay(100);
+                            }
+                        }
+                        await Task.Delay(2000);
+                        while (meleeNorth() || meleeWest())
+                        {
+                            await Task.Delay(100);
+                        }
+                        processor.addMouseClick(653, 38, "movement");
+                    }
+                    m11++;
+                    break;
             }
+            //Console.WriteLine("Melee dead, wave done.");
+            waveComplete = true;
+            finishWave();
+            return;
+        }
+
+        public void summonThrall()
+        {
+            processor.addMouseClick(639, 319, "attack");
         }
 
         public async void finishWave()
@@ -826,22 +1357,24 @@ namespace Bot.Scripts.Colo
             }
             if (wave2tests)
             {
-                wave2.startScript();
+                //wave2.startScript();
                 return;
             }
             await Task.Delay(300);
             processor.addMouseClick(79, 293, "gamescreen");
             await Task.Delay(300);
             processor.addMouseClick(328, 244, "gamescreen");
+            await Task.Delay(300);
             while (popup)
             {
                 await Task.Delay(100);
             }
             await Task.Delay(300);
-            while(!chestHitbox())
+            while (!chestHitbox())
             {
                 await Task.Delay(100);
             }
+            await Task.Delay(600);
             processor.addMouseClick(chestPosX + 3, chestPosY + 5, "gamescreen");
             await Task.Delay(100);
             while (!chestGuy())
@@ -849,30 +1382,72 @@ namespace Bot.Scripts.Colo
                 await Task.Delay(600);
             }
             await Task.Delay(300);
-            processor.addMouseClick(337, 289);
+            processor.addMouseClick(337, 289, "gamescreen");
             claims++;
             fremsCleared = 0;
-            await Task.Delay(300);
+            await Task.Delay(600);
             processor.addMouseClick(371, 28, "gamescreen");
-            while(lootInterface())
-            {
-                await Task.Delay(100);
-            }
-            processor.addMouseClick(308, 141, "gamescreen");
+            await Task.Delay(600);
+            processor.addMouseClick(326, 134, "gamescreen");
             await Task.Delay(300);
             while (!leaveInterface())
             {
-                await Task.Delay(100);
+                await Task.Delay(600);
             }
             processor.PressKey((byte)Keys.NumPad1, 1);
+            await Task.Delay(600);
+            processor.addMouseClick(531, 148, "prayer");
             await Task.Delay(3000);
             while (!colorDoor())
             {
                 await Task.Delay(600);
             }
+            Console.WriteLine($"bank pos: {bankPosX.ToString()} + {bankPosY.ToString()}");
             await Task.Delay(600);
-            processor.addMouseClick(doorPosX + 15, doorPosY + 25, "gamescreen"); //YELLOW CLICK?
-            while (!atMiddleTile())
+            //if (inventory.hasItem2("ranging potion (1)") || inventory.hasItem2("ranging potion (2)") || inventory.hasItem2("ranging potion (3)") || inventory.hasItem2("ranging potion (4)"))
+            //{
+                Console.WriteLine("Has potion");
+                processor.addMouseClick(doorPosX + 15, doorPosY, "gamescreen");
+                while (!atMiddleTile())
+                {
+                    await Task.Delay(100);
+                }
+                startScript();
+            //} else
+            //{
+            //    Console.WriteLine("Has no potion");
+            //    processor.addMouseClick(bankPosX + 7, bankPosY, "gamescreen");
+            //    while(!bankOpen())
+            //    {
+            //        await Task.Delay(100);
+            //    }
+            //    doBanking();
+            //}
+        }
+
+        private bool bankOpen()
+        {
+            return checkColor(5, 5, 53, 19, 255, 152, 31);
+        }
+
+        public async void doBanking()
+        {
+            processor.addMouseClick(276, 171, "gamescreen");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)");
+            inventory.addItem("ranging potion (4)"); //change this later to add amount
+            await Task.Delay(300);
+            processor.addMouseClick(482, 20, "gamescreen");
+            await Task.Delay(300);
+            processor.addMouseClick(191, 96, "gamescreen");
+            while(!atMiddleTile())
             {
                 await Task.Delay(100);
             }
@@ -883,10 +1458,6 @@ namespace Bot.Scripts.Colo
         {
             inventory.clickItem2("kodai wand", 4);
             inventory.clickItem2("tome of fire", 6);
-            inventory.clickItem2("occult necklace", 2);
-            inventory.clickItem2("virtus robetop", 5);
-            inventory.clickItem2("armadyl chaps", 7);
-            inventory.clickItem2("imbued zamorak cape", 1);
         }
         public async void equipMagic()
         {
@@ -894,7 +1465,6 @@ namespace Bot.Scripts.Colo
             inventory.clickItem2("tome of fire", 6);
             inventory.clickItem2("occult necklace", 2);
             inventory.clickItem2("virtus robetop", 5);
-            inventory.clickItem2("armadyl chaps", 7);
             inventory.clickItem2("imbued zamorak cape", 1);
         }
         public async void equipRangeFrem()
@@ -902,7 +1472,6 @@ namespace Bot.Scripts.Colo
             inventory.clickItem2("masori assembler", 1);
             inventory.clickItem2("necklace of anguish", 2);
             inventory.clickItem2("armadyl dhide top", 5);
-            inventory.clickItem2("armadyl chaps", 7);
             inventory.clickItem2("venator bow", 4, true);
             inventory.clickItem2("amethyst arrows", 3);
         }
@@ -911,14 +1480,13 @@ namespace Bot.Scripts.Colo
             inventory.clickItem2("masori assembler", 1);
             inventory.clickItem2("necklace of anguish", 2);
             inventory.clickItem2("armadyl dhide top", 5);
-            inventory.clickItem2("armadyl chaps", 7);
             inventory.clickItem2("venator bow", 4, true);
             inventory.clickItem2("amethyst arrows", 3);
         }
         public async void equipMeleeFrem()
         {
-            inventory.clickItem2("infernal cape", 1);
             inventory.clickItem2("saradomin godsword", 4, true);
+            inventory.clickItem2("infernal cape", 1);
             inventory.clickItem2("amulet of fury", 2);
             inventory.clickItem2("fighters torso", 5);
         }
@@ -932,8 +1500,7 @@ namespace Bot.Scripts.Colo
 
         public async void equipLongRangeWeapon()
         {
-            inventory.clickItem2("zaryte crossbow", 4);
-            inventory.clickItem2("diamond bolts", 3);
+            inventory.clickItem2("zaryte crossbow", 4, true);
         }
         public async void equipDPSRangeWeapon()
         {
@@ -1009,6 +1576,10 @@ namespace Bot.Scripts.Colo
         {
             return checkColor(106, 86, 588, 30, 0, 0, 255);
         }
+        public bool canSpec()
+        {
+            return checkColor(3, 3, 575, 146, 53, 155, 181);
+        }
         public bool meleeOnMap()
         {
             return checkColor(106, 86, 588, 30, 255, 0, 0);
@@ -1044,31 +1615,77 @@ namespace Bot.Scripts.Colo
             {
                 return 7;
             }
+            if (checkColor(3, 3, 653, 91, 0, 0, 255))
+            {
+                return 8;
+            }
+            if (checkColor(3, 3, 637, 71, 0, 0, 255))
+            {
+                return 9;
+            }
+            if (checkColor(3, 3, 673, 91, 0, 0, 255))
+            {
+                return 10;
+            }
+            if (checkColor(3, 3, 673, 91, 0, 0, 255))
+            {
+                return 11;
+            }
             return 0;
         }
-        public bool checkColor(int a, int b, int posX, int posY, int red, int green, int blue)
+        public bool checkColor(int width, int height, int posX, int posY, int red, int green, int blue)
         {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(a, b))
+            using (Bitmap bitmap = new Bitmap(width, height))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(a, b));
+                    g.CopyFromScreen(clientCoords[0] + posX, clientCoords[1] + posY, 0, 0, new Size(width, height));
                 }
 
-                for (int x = 0; x < a; x++)
+                // Use unsafe code for much faster pixel access
+                unsafe
                 {
-                    for (int y = 0; y < b; y++)
+                    BitmapData bitmapData = bitmap.LockBits(
+                        new Rectangle(0, 0, width, height),
+                        ImageLockMode.ReadOnly,
+                        PixelFormat.Format24bppRgb);
+
+                    try
                     {
-                        if (bitmap.GetPixel(x, y).R == red && bitmap.GetPixel(x, y).G == green && bitmap.GetPixel(x, y).B == blue)
+                        byte* scan0 = (byte*)bitmapData.Scan0.ToPointer();
+                        int stride = bitmapData.Stride;
+
+                        for (int y = 0; y < height; y++)
                         {
-                            return true;
+                            byte* row = scan0 + (y * stride);
+                            for (int x = 0; x < width; x++)
+                            {
+                                int bIndex = x * 3;
+                                byte b = row[bIndex];
+                                byte g = row[bIndex + 1];
+                                byte r = row[bIndex + 2];
+
+                                if (r == red && g == green && b == blue)
+                                {
+                                    return true;
+                                }
+                            }
                         }
+                    }
+                    finally
+                    {
+                        bitmap.UnlockBits(bitmapData);
                     }
                 }
             }
             return false;
         }
+
+        public void StopCheckLoop()
+        {
+            _cancellationTokenSource.Cancel();
+        }
+
         public bool checkDoorPixel(int a, int b, int posX, int posY)
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -1172,9 +1789,17 @@ namespace Bot.Scripts.Colo
 
         public bool meleeFremCheck()
         {
+            // Removed duplicate call - was calling checkColor twice
             meleeFrem = checkColor(5, 5, 633, 79, 255, 255, 0);
-            return checkColor(5, 5, 633, 79, 255, 255, 0);
+            return meleeFrem;
         }
+        public bool mageFremCheck()
+        {
+            // Removed duplicate call - was calling checkColor twice
+            mageFrem = checkColor(5, 5, 640, 79, 255, 255, 0);
+            return mageFrem;
+        }
+
         public bool colorDoor()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -1225,6 +1850,33 @@ namespace Bot.Scripts.Colo
             }
             return false;
         }
+
+        public bool bankHitbox()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(75, 75))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 294, clientCoords[1] + 115, 0, 0, new Size(75, 75));
+                }
+
+                for (int i = 0; i < 74; i++)
+                {
+                    for (int j = 0; j < 74; j++)
+                    {
+                        if (bitmap.GetPixel(i, j).R <= 10 && bitmap.GetPixel(i, j).G <= 10 && bitmap.GetPixel(i, j).B >= 210)
+                        {
+                            bankPosX = i + 318;
+                            bankPosY = j + 124;
+                            Console.WriteLine($"bank pos: {bankPosX.ToString()} + {bankPosY.ToString()}");
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
         public bool popupCheck()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -1254,9 +1906,13 @@ namespace Bot.Scripts.Colo
         {
             return checkDoorPixel(5, 5, 633, 143);
         }
+        public bool atMiddlePilar()
+        {
+            return checkDoorPixel(5, 5, 665, 104);
+        }
         public bool atCornerTile()
         {
-            return checkDoorPixel(5, 5, 665, 106);
+            return checkDoorPixel(3, 3, 658, 106);
         }
 
         public bool atStartTile()
@@ -1265,3 +1921,4 @@ namespace Bot.Scripts.Colo
         }
     }
 }
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                

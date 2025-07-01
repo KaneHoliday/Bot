@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using static Bot.Core.CoreProcessor;
 using static System.Windows.Forms.Design.AxImporter;
 
 namespace Bot.Scripts
@@ -18,6 +20,7 @@ namespace Bot.Scripts
         public Inventory inventory;
         public XpDrops xpDrops;
         public CoreProcessor processor;
+        public Prayer prayer;
 
         public bool third = false;
 
@@ -82,7 +85,9 @@ namespace Bot.Scripts
                 cLured = false;
             }
             await Task.Delay(200);
+            tenthTick();
             playerHit();
+            //inside();
             update();
         }
 
@@ -125,7 +130,8 @@ namespace Bot.Scripts
         {
             //updateConsole();
             startTime();
-            drinkPotion();
+            //drinkpotion and remove waitforsetup,
+            attack();
             update();
             Console.WriteLine("Starting corp bot");
         }
@@ -325,7 +331,7 @@ namespace Bot.Scripts
                     await Task.Delay(100);
                     processor.addMouseClick(256, 91, "gamescreen");
                     await Task.Delay(100);
-                    while (!inside())
+                    while (!insideCave)
                     {
                         await Task.Delay(100);
                     }
@@ -390,7 +396,7 @@ namespace Bot.Scripts
                     processor.addMouseClick(553, 90, "gamescreen"); // turns prayer on
                     await Task.Delay(800);
                     processor.addMouseClick(262, 89, "gamescreen"); //enters room
-                    while (!inside())
+                    while (!insideCave)
                     {
                         await Task.Delay(10);
                     }
@@ -478,7 +484,7 @@ namespace Bot.Scripts
                 await Task.Delay(100);
                 processor.addMouseClick(256, 123, "gamescreen");
                 await Task.Delay(100);
-                while (!inside())
+                while (!insideCave)
                 {
                     await Task.Delay(100);
                 }
@@ -512,7 +518,7 @@ namespace Bot.Scripts
                     processor.addMouseClick(553, 90, "gamescreen"); // turns prayer on
                     await Task.Delay(800);
                     processor.addMouseClick(262, 89, "gamescreen"); //enters room
-                    while (!inside())
+                    while (!insideCave)
                     {
                         await Task.Delay(10);
                     }
@@ -623,48 +629,79 @@ namespace Bot.Scripts
             }
         }
 
+        [DllImport("user32.dll")]
+        public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, int dwExtraInfo);
+
+        const uint KEY_DOWN_EVENT = 0x0000; // Key down
+        const uint KEY_UP_EVENT = 0x0002;   // Key up
+
+        public void PressShift()
+        {
+            // Simulate right Shift key down (VK_RSHIFT = 0xA1, scan code = 0x36)
+            keybd_event((byte)Keys.RShiftKey, 0x36, KEY_DOWN_EVENT, 0);
+        }
+
+        public void ReleaseShift()
+        {
+            // Simulate right Shift key up
+            keybd_event((byte)Keys.RShiftKey, 0x36, KEY_UP_EVENT, 0);
+        }
+
 
         public async void waitForSetup()
         {
-            while (!green() && !cLured && !bPos) {
+            int tick = processor.tick;
+            while(tick != 0)
+            {
+                Console.WriteLine($"{tick.ToString()} : {processor.tick.ToString()}");
+                await Task.Delay(10);
+                tick = processor.tick;
+            }
+            Console.WriteLine("On tick 0.");
+            await Task.Delay(100);
+            processor.moveMouse(256, 93);
+            await Task.Delay(100);
+            PressShift();         // Press right Shift
+            await Task.Delay(50);
+            tick = processor.tick;
+            processor.instaClick(256, 93);
+            while (tick == processor.tick)
+            {
                 await Task.Delay(10);
             }
-            if (cLured && bPos && green())
-                {
-                    Console.WriteLine("Corp lured");
-                    attack();
-                }
-            else if (green() && !cLured &&!firstHit)
-            {
-                    Console.WriteLine("Corp dead");
-                corpKills++;
-                profit += 434000;
-                wild = false;
-                    pickUpLoot();
-            } else
+            ReleaseShift();
+            tick = processor.tick;
+            processor.addMouseClick(256, 204);
+            while (tick == processor.tick)
             {
                 await Task.Delay(10);
-                waitForSetup();
             }
+            tick = processor.tick;
+            processor.addMouseClick(256, 204);
+            while (tick == processor.tick)
+            {
+                await Task.Delay(10);
+            }
+            tick = processor.tick;
+            processor.addMouseClick(256, 204);
         }
 
         int tempX = 0;
 
         public async void attack()
         {
-            processor.moveMouse(256, 123);
-            while(green())
+            while(!tenthT)
             {
                 await Task.Delay(10);
             }
             Console.WriteLine("Clicking door");
-            processor.instaClick(256, 123); //click door
-            await Task.Delay(10);
-            while(!inside())
+            processor.addMouseClick(245, 98, "gamescreen"); //click door
+            while(!insideCave)
             {
                 await Task.Delay(10);
             }
-            processor.addMouseClick(256, 123, "gamescreen"); //attack corp
+            Console.WriteLine("inside corp cave");
+            processor.addMouseClick(245, 98, "gamescreen"); //attack corp
             attacks++;
             tAttacks++;
             if (attacks > 5 && !firstHit && spellBook == "Lunars")
@@ -676,40 +713,12 @@ namespace Bot.Scripts
             {
                 Console.WriteLine($"Cannot veng or thrall. Attacks:{attacks.ToString()} + firsthit: {firstHit.ToString()} + Spellbook: {spellBook.ToString()}");
             }
-            await Task.Delay(600);
-            if (firstHit)
-            {
-                if (third)
-                {
-                    blockerAttack();
-                    await Task.Delay(100);
-                } else
-                {
-                    blockerAttack();
-                    firstHit = false;
-                }
-            }
-            await Task.Delay(100);
-            while (inside())
-            {
-                await Task.Delay(10);
-            }
-            if (firstHit)
-            {
-                if (third)
-                {
-                    attackerAttack();
-                    await Task.Delay(300);
-                    firstHit = false;
-                }
-            }
-            processor.addMouseClick(278, 226, "gamescreen"); //go into door
-            await Task.Delay(100);
+            //blockerAttack();
+            processor.addMouseClick(309, 198, "gamescreen"); //go into door
             while (!outside() && !atLureSpot()) 
             {
                 await Task.Delay(10);
             }
-            await Task.Delay(500);
             if (atLureSpot() && !corpLured())
             {
                 corpKills++;
@@ -719,7 +728,7 @@ namespace Bot.Scripts
                 pickUpLoot();
                 return;
             }
-            processor.addMouseClick(226, 176, "gamescreen");
+            processor.addMouseClick(226, 176, "attack");
             await Task.Delay(100);
             if(tAttacks > 7 && attacks < 4) //thrall ready but veng not. Veng > thralls.
             {
@@ -738,17 +747,29 @@ namespace Bot.Scripts
                     player.health += 20;
                 }
             }
-            waitForSetup();
+            attack();
         }
 
         public async void blockerAttack()
         {
-            processor.addMouseClick(935, 162, "gamescreen");
+            if (firstHit)
+            {
+                if (third)
+                {
+                    processor.addMouseClick(935, 162, "gamescreen");
+                    await Task.Delay(100);
+                }
+                else
+                {
+                    processor.addMouseClick(935, 162, "gamescreen");
+                    firstHit = false;
+                }
+            }
         }
 
         public async void attackerAttack()
         {
-            processor.addMouseClick(98, 604, "gamescreen");
+            processor.addMouseClick(98, 604, "attack");
         }
 
         public async void summonThralls()
@@ -774,7 +795,7 @@ namespace Bot.Scripts
         {
             processor.PressKey((byte)Keys.F4, 1);
             await Task.Delay(100);
-            processor.addMouseClick(639, 429, "gamescreen");
+            processor.addMouseClick(639, 429, "attack");
             await Task.Delay(300);
             processor.PressKey((byte)Keys.F1, 1);
    
@@ -810,7 +831,7 @@ namespace Bot.Scripts
                 processor.addMouseClick(257, 107, "gamescreen");
                 await Task.Delay(100);
                 processor.addMouseClick(1029, 266, "gamescreen");
-                while (!inside())
+                while (!insideCave)
                 {
                     await Task.Delay(100);
                 }
@@ -992,6 +1013,33 @@ namespace Bot.Scripts
             return false;
         }
 
+        public bool tenthT = false;
+
+        public bool tenthTick()
+        {
+            Rectangle bounds = Screen.GetBounds(Point.Empty);
+            using (Bitmap bitmap = new Bitmap(3, 3))
+            {
+                using (Graphics g = Graphics.FromImage(bitmap))
+                {
+                    g.CopyFromScreen(clientCoords[0] + 249, clientCoords[1] + 11, 0, 0, new Size(3, 3));
+                }
+                for (int x = 0; x < 3; x++)
+                {
+                    for (int y = 0; y < 3; y++)
+                    {
+                        if (bitmap.GetPixel(x, y).R == 107 && bitmap.GetPixel(x, y).G == 237 && bitmap.GetPixel(x, y).B == 124)
+                        {
+                            tenthT = true;
+                            return true;
+                        }
+                    }
+                }
+            }
+            tenthT = false;
+            return false;
+        }
+
         public bool welcomeHome()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -1152,6 +1200,7 @@ namespace Bot.Scripts
             return false;
         }
 
+        public bool insideCave = false;
         public bool inside()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
@@ -1167,11 +1216,13 @@ namespace Bot.Scripts
                     {
                         if (bitmap.GetPixel(x, y).R > 225 && bitmap.GetPixel(x, y).G == 0 && bitmap.GetPixel(x, y).B == 0)
                         {
+                            insideCave = true;
                             return true;
                         }
                     }
                 }
             }
+            insideCave = false;
             return false;
         }
 

@@ -36,23 +36,47 @@ namespace Bot.Core
             inventory[8] = "rune pouch";
             inventory[9] = "osmumtens fang";
             inventory[10] = "avernic defender";
-            inventory[11] = "";
+            inventory[11] = "ranging potion (4)";
             inventory[12] = "ranging potion (4)";
             inventory[13] = "ranging potion (4)";
             inventory[14] = "ranging potion (4)";
             inventory[15] = "ranging potion (4)";
             inventory[16] = "ranging potion (4)";
             inventory[17] = "ranging potion (4)";
-            inventory[18] = "super restore (4)";
-            inventory[19] = "shark";
-            inventory[20] = "super combat potion (4)";
+            inventory[18] = "ranging potion (4)";
+            inventory[19] = "ranging potion (4)";
+            inventory[20] = "ranging potion (4)";
             inventory[21] = "";
             inventory[22] = "";
-            inventory[23] = "shark";
-            inventory[24] = "saturated heart";
+            inventory[23] = "";
+            inventory[24] = "";
             inventory[25] = "zaryte crossbow";
             inventory[26] = "diamond bolts";
             inventory[27] = "";
+        }
+
+        public void addItem(string item, int amount = 0) // add amount later
+        {
+            for (int i = 0; i < inventory.Length; i++)
+            {
+                if (inventory[i] == "")
+                {
+                    inventory[i] = item;
+                    break;
+                }
+            }
+        }
+
+        public bool hasItem2(string item)
+        {
+            for (int i = 0; i < inventory.Length; i++)
+            {
+                if (inventory[i] == item)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public void clickInventorySlot(int x)

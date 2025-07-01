@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -14,6 +15,8 @@ namespace Bot.Scripts
         public Inventory inventory;
         public XpDrops xpDrops;
         public CoreProcessor processor;
+        public Equipment equipment;
+        public Prayer prayer;
 
         public int[] clientCoords = new int[2];
 
@@ -31,22 +34,31 @@ namespace Bot.Scripts
                 await Task.Delay(100);
                 Console.WriteLine("Waiting to be inside baba lair.");
             }
-            processor.addMouseClick(283, 193, "gamescreen");
+            processor.addMouseClick(164, 196, "gamescreen");
             waitForBaba();
         }
 
         public async void waitForBaba()
         {
-            while(!babaEastSetupEntr())
+            while(!babaNorthSetupEntr())
             {
                 await Task.Delay(100);
             }
-            processor.addMouseClick(282, 172, "gamescreen");
-            while (!babaNorthSetupEntr())
+            processor.addMouseClick(396, 168, "gamescreen");
+            while (!babaLured() && onSafespotTile())
             {
                 await Task.Delay(100);
             }
             waitForAttack();
+        }
+        public bool babaLured()
+        {
+            return true;
+        }
+
+        public bool onSafespotTile()
+        {
+            return false;
         }
 
         public async void waitForAttack()
@@ -61,7 +73,7 @@ namespace Bot.Scripts
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 634, clientCoords[1] + 124, 0, 0, new Size(5, 5));
+                    g.CopyFromScreen(clientCoords[0] + 653, clientCoords[1] + 122, 0, 0, new Size(5, 5));
                 }
                 for (int x = 0; x < 5; x++)
                 {
@@ -78,40 +90,18 @@ namespace Bot.Scripts
             return false;
         }
 
-        public bool babaEastSetupEntr()
-        {
-            Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(2, 2))
-            {
-                using (Graphics g = Graphics.FromImage(bitmap))
-                {
-                    g.CopyFromScreen(clientCoords[0] + 629, clientCoords[1] + 58, 0, 0, new Size(2, 2));
-                }
-                for (int x = 0; x < 2; x++)
-                {
-                    for (int y = 0; y < 2; y++)
-                    {
-                        if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
-                        {
-                            return true;
-                        }
-                    }
-                }
-            }
-            return false;
-        }
         public bool babaNorthSetupEntr()
         {
             Rectangle bounds = Screen.GetBounds(Point.Empty);
-            using (Bitmap bitmap = new Bitmap(2, 2))
+            using (Bitmap bitmap = new Bitmap(10, 10))
             {
                 using (Graphics g = Graphics.FromImage(bitmap))
                 {
-                    g.CopyFromScreen(clientCoords[0] + 625, clientCoords[1] + 71, 0, 0, new Size(2, 2));
+                    g.CopyFromScreen(clientCoords[0] + 658, clientCoords[1] + 69, 0, 0, new Size(10, 10));
                 }
-                for (int x = 0; x < 2; x++)
+                for (int x = 0; x < 10; x++)
                 {
-                    for (int y = 0; y < 2; y++)
+                    for (int y = 0; y < 10; y++)
                     {
                         if (bitmap.GetPixel(x, y).R == 0 && bitmap.GetPixel(x, y).G == 255 && bitmap.GetPixel(x, y).B == 255)
                         {
